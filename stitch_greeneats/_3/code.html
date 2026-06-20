@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LightCare - 周报与复盘</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "outline": "#747878",
+                        "surface-container-highest": "#e1e3e4",
+                        "tertiary-fixed": "#e6e1df",
+                        "inverse-primary": "#c8c6c5",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#484645",
+                        "on-surface": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "on-primary-fixed-variant": "#474646",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#1c1b1b",
+                        "surgical-green": "#00A36C",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-primary": "#ffffff",
+                        "border-subtle": "#E2E8F0",
+                        "surface": "#f8fafb",
+                        "surface-container-high": "#e6e8e9",
+                        "secondary": "#006c46",
+                        "surface-tint": "#5f5e5e",
+                        "secondary-fixed-dim": "#5ddda1",
+                        "inverse-on-surface": "#eff1f2",
+                        "primary": "#000000",
+                        "surface-bright": "#f8fafb",
+                        "secondary-container": "#7bfabb",
+                        "on-surface-variant": "#444748",
+                        "on-tertiary-fixed": "#1c1b1a",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#cac6c3",
+                        "secondary-fixed": "#7bfabb",
+                        "surface-container-low": "#f2f4f5",
+                        "on-background": "#191c1d",
+                        "tertiary": "#000000",
+                        "border-strong": "#121212",
+                        "on-primary-container": "#858383",
+                        "surface-variant": "#e1e3e4",
+                        "outline-variant": "#c4c7c7",
+                        "surface-container": "#eceeef",
+                        "on-secondary-fixed": "#002112",
+                        "on-secondary-container": "#00734b",
+                        "tertiary-container": "#1c1b1a",
+                        "on-tertiary-container": "#868381",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#f8fafb",
+                        "on-secondary-fixed-variant": "#005234",
+                        "clinical-charcoal": "#121212",
+                        "error-container": "#ffdad6",
+                        "pure-white": "#FFFFFF",
+                        "surface-dim": "#d8dadb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "margin-desktop": "64px",
+                        "sm": "8px",
+                        "xl": "40px",
+                        "lg": "24px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.pure-white');
+            color: theme('colors.clinical-charcoal');
+        }
+        /* Custom scrollbar for minimal look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.border-subtle');
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.outline');
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        .wireframe-box {
+            border: 1px solid theme('colors.border-subtle');
+            background-color: theme('colors.pure-white');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen pb-24 md:pb-0 pt-20">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 bg-pure-white dark:bg-clinical-charcoal border-b border-border-subtle dark:border-outline">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-border-subtle flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-outline">person</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-pure-white font-bold tracking-tight">LightCare</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-3xl mx-auto px-margin-mobile md:px-margin-desktop py-xl flex flex-col gap-xl">
+<!-- Header Title -->
+<section class="flex flex-col gap-sm">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-clinical-charcoal">周报与复盘</h2>
+<p class="font-body-md text-body-md text-outline">第42周 • 10月16日 - 10月22日</p>
+</section>
+<!-- AI Expert Review -->
+<section class="wireframe-box p-lg flex flex-col gap-md relative">
+<div class="absolute top-0 left-0 w-[2px] h-full bg-surgical-green"></div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-surgical-green">psychology</span>
+<h3 class="font-label-md text-label-md text-clinical-charcoal uppercase tracking-widest">AI 专家点评</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                本周蛋白质摄入持续低于基准，建议增加蛋奶摄入。已同步更新下周配餐权重。
+            </p>
+</section>
+<!-- Data Comparison (Sparklines/Radar Minimalist representation) -->
+<section class="flex flex-col gap-md">
+<h3 class="font-label-md text-label-md text-outline uppercase tracking-widest border-b border-border-subtle pb-xs">数据对比</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-md">
+<!-- Metric 1 -->
+<div class="wireframe-box p-md flex flex-col gap-sm">
+<span class="font-label-sm text-label-sm text-outline">蛋白质</span>
+<div class="flex items-end gap-xs">
+<span class="font-headline-md text-headline-md text-clinical-charcoal">58g</span>
+<span class="font-label-sm text-label-sm text-outline pb-1">/ 80g</span>
+</div>
+<!-- Minimal Sparkline substitute -->
+<div class="h-[2px] w-full bg-surface-container-high mt-auto relative">
+<div class="absolute top-0 left-0 h-full bg-clinical-charcoal w-[72%]"></div>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="wireframe-box p-md flex flex-col gap-sm">
+<span class="font-label-sm text-label-sm text-outline">碳水</span>
+<div class="flex items-end gap-xs">
+<span class="font-headline-md text-headline-md text-clinical-charcoal">120g</span>
+<span class="font-label-sm text-label-sm text-outline pb-1">/ 150g</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-high mt-auto relative">
+<div class="absolute top-0 left-0 h-full bg-surgical-green w-[80%]"></div>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="wireframe-box p-md flex flex-col gap-sm">
+<span class="font-label-sm text-label-sm text-outline">脂肪</span>
+<div class="flex items-end gap-xs">
+<span class="font-headline-md text-headline-md text-clinical-charcoal">45g</span>
+<span class="font-label-sm text-label-sm text-outline pb-1">/ 50g</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-high mt-auto relative">
+<div class="absolute top-0 left-0 h-full bg-surgical-green w-[90%]"></div>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="wireframe-box p-md flex flex-col gap-sm">
+<span class="font-label-sm text-label-sm text-outline">水分</span>
+<div class="flex items-end gap-xs">
+<span class="font-headline-md text-headline-md text-clinical-charcoal">1.8L</span>
+<span class="font-label-sm text-label-sm text-outline pb-1">/ 2.5L</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-high mt-auto relative">
+<div class="absolute top-0 left-0 h-full bg-clinical-charcoal w-[70%]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Journal Timeline View -->
+<section class="flex flex-col gap-md">
+<h3 class="font-label-md text-label-md text-outline uppercase tracking-widest border-b border-border-subtle pb-xs">时光轴</h3>
+<div class="relative pl-6 flex flex-col gap-lg">
+<!-- Vertical Line -->
+<div class="absolute top-2 bottom-2 left-[7px] w-[1px] bg-border-subtle"></div>
+<!-- Timeline Item 1 (Photo) -->
+<div class="relative flex flex-col gap-sm">
+<!-- Node -->
+<div class="absolute -left-[27px] top-1 w-[9px] h-[9px] rounded-full bg-clinical-charcoal border-2 border-pure-white"></div>
+<div class="flex items-center gap-sm">
+<span class="font-label-sm text-label-sm text-outline">10月20日 • 12:30 PM</span>
+<span class="px-2 py-[2px] bg-surface rounded text-label-sm font-label-sm text-clinical-charcoal">午餐</span>
+</div>
+<div class="wireframe-box w-full max-w-sm aspect-video flex items-center justify-center relative overflow-hidden group">
+<!-- Wireframe placeholder for photo -->
+<div class="absolute inset-0 border border-border-subtle border-dashed m-xs flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">image</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">烤鸡肉沙拉配低脂油醋汁。</p>
+</div>
+<!-- Timeline Item 2 (Voice Snippet) -->
+<div class="relative flex flex-col gap-sm">
+<!-- Node -->
+<div class="absolute -left-[27px] top-1 w-[9px] h-[9px] rounded-full bg-clinical-charcoal border-2 border-pure-white"></div>
+<div class="flex items-center gap-sm">
+<span class="font-label-sm text-label-sm text-outline">10月19日 • 09:00 AM</span>
+<span class="px-2 py-[2px] bg-surface rounded text-label-sm font-label-sm text-clinical-charcoal">反思</span>
+</div>
+<div class="wireframe-box p-md flex items-center gap-md w-full max-w-sm cursor-pointer hover:border-clinical-charcoal transition-colors">
+<button class="w-8 h-8 rounded-full bg-clinical-charcoal text-pure-white flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</button>
+<!-- Waveform abstraction -->
+<div class="flex-1 flex items-center gap-[2px] h-6 overflow-hidden">
+<div class="w-1 h-full bg-border-subtle"></div>
+<div class="w-1 h-[60%] bg-border-subtle"></div>
+<div class="w-1 h-[80%] bg-border-subtle"></div>
+<div class="w-1 h-[40%] bg-border-subtle"></div>
+<div class="w-1 h-[90%] bg-border-subtle"></div>
+<div class="w-1 h-[30%] bg-border-subtle"></div>
+<div class="w-1 h-[70%] bg-border-subtle"></div>
+<div class="w-1 h-[50%] bg-border-subtle"></div>
+<div class="w-1 h-[20%] bg-border-subtle"></div>
+<div class="w-1 h-full bg-border-subtle"></div>
+<div class="w-1 h-[60%] bg-border-subtle"></div>
+</div>
+<span class="font-label-sm text-label-sm text-outline shrink-0">0:14</span>
+</div>
+</div>
+<!-- Timeline Item 3 (Text Note) -->
+<div class="relative flex flex-col gap-sm">
+<!-- Node -->
+<div class="absolute -left-[27px] top-1 w-[9px] h-[9px] rounded-full bg-pure-white border border-clinical-charcoal"></div>
+<div class="flex items-center gap-sm">
+<span class="font-label-sm text-label-sm text-outline">10月18日 • 08:15 AM</span>
+<span class="px-2 py-[2px] bg-surface rounded text-label-sm font-label-sm text-clinical-charcoal">体重</span>
+</div>
+<div class="flex items-end gap-sm">
+<span class="font-headline-md text-headline-md text-clinical-charcoal">68.2 kg</span>
+<span class="font-label-sm text-label-sm text-surgical-green flex items-center mb-1">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span> 0.3kg
+                        </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Action -->
+<section class="mt-xl pt-lg border-t border-border-subtle flex justify-center">
+<button class="w-full md:w-auto px-lg py-md bg-clinical-charcoal text-pure-white rounded font-label-md text-label-md hover:bg-opacity-90 transition-opacity active:scale-[0.98]">
+                更新当前体重以自适应算法
+            </button>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-16 bg-pure-white dark:bg-clinical-charcoal border-t border-border-subtle dark:border-outline">
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant pt-2 hover:text-primary dark:hover:text-pure-white transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant pt-2 hover:text-primary dark:hover:text-pure-white transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</a>
+<!-- Active Tab: Analytics maps closest to Journal/Feedback -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-pure-white border-t-2 border-primary dark:border-pure-white pt-2 hover:text-primary dark:hover:text-pure-white transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline dark:text-outline-variant pt-2 hover:text-primary dark:hover:text-pure-white transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</a>
+</nav>
+</body></html>

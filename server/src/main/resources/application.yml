@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: lightcare-server
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lightcare}
+    username: ${DB_USER:lightcare}
+    password: ${DB_PASSWORD:lightcare}
+
+  jpa:
+    hibernate:
+      ddl-auto: none  # 不用 Hibernate 校验 schema（Spring Boot 3.3 + Hibernate 6.5 默认命名策略对 carbG/fatG 推导为 carbg/fatg，与 Flyway 建表的 carb_g/fat_g 不一致，会启动失败）。Flyway 管建表，应用层信任 Flyway 出来的 schema。
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          # 上海时区：避免凌晨拍照时 server LocalDate.now() 跨天导致 meal_date 错位、首页今日记录查不到。
+          time_zone: Asia/Shanghai
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 8MB      # 拍照食物识别允许的手机照片
+      max-request-size: 8MB
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+# M3 (MiniMax-M3) 拍照识别 API key。从环境变量 M3_API_KEY 读。
+# 本地开发：export M3_API_KEY=<your_key>; ./gradlew bootRun
+# 不配时 /v1/recognize 和 /v1/meals/photo 异步识别会失败（meal 仍入库, status=FAILED）
+lightcare:
+  upload-dir: ${UPLOAD_DIR:uploads}
+
+server:
+  port: 8080
+  compression:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

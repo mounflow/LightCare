@@ -1,0 +1,84 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.7/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName
+
+> Task :bootRun
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.0)
+
+2026-06-20T09:26:35.344+08:00  INFO 14120 --- [lightcare-server] [           main] c.l.server.LightCareServerApplication    : Starting LightCareServerApplication using Java 21.0.11 with PID 14120 (D:\AI_Practice\LightCare\server\build\classes\java\main started by 27774 in D:\AI_Practice\LightCare\server)
+2026-06-20T09:26:35.353+08:00  INFO 14120 --- [lightcare-server] [           main] c.l.server.LightCareServerApplication    : The following 1 profile is active: "dev"
+2026-06-20T09:26:37.211+08:00  INFO 14120 --- [lightcare-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-06-20T09:26:37.213+08:00  INFO 14120 --- [lightcare-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-20T09:26:37.437+08:00  INFO 14120 --- [lightcare-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 214 ms. Found 7 JPA repository interfaces.
+2026-06-20T09:26:37.451+08:00  INFO 14120 --- [lightcare-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-06-20T09:26:37.451+08:00  INFO 14120 --- [lightcare-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-06-20T09:26:37.482+08:00  INFO 14120 --- [lightcare-server] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.lightcare.server.exercise.ExerciseRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-06-20T09:26:37.482+08:00  INFO 14120 --- [lightcare-server] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.lightcare.server.exercise.WaterLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-06-20T09:26:37.482+08:00  INFO 14120 --- [lightcare-server] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.lightcare.server.food.FoodRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-06-20T09:26:37.482+08:00  INFO 14120 --- [lightcare-server] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.lightcare.server.meal.MealRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-06-20T09:26:37.483+08:00  INFO 14120 --- [lightcare-server] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.lightcare.server.profile.ProfileRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-06-20T09:26:37.483+08:00  INFO 14120 --- [lightcare-server] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.lightcare.server.profile.UserRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-06-20T09:26:37.484+08:00  INFO 14120 --- [lightcare-server] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.lightcare.server.recommend.RecommendCardRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-06-20T09:26:37.486+08:00  INFO 14120 --- [lightcare-server] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 12 ms. Found 0 Redis repository interfaces.
+2026-06-20T09:26:38.735+08:00 ERROR 14120 --- [lightcare-server] [           main] o.a.catalina.core.AprLifecycleListener   : An incompatible version [1.2.33] of the Apache Tomcat Native library is installed, while Tomcat requires version [1.2.34]
+2026-06-20T09:26:39.103+08:00  INFO 14120 --- [lightcare-server] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-06-20T09:26:39.129+08:00  INFO 14120 --- [lightcare-server] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-20T09:26:39.129+08:00  INFO 14120 --- [lightcare-server] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.24]
+2026-06-20T09:26:39.253+08:00  INFO 14120 --- [lightcare-server] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-20T09:26:39.255+08:00  INFO 14120 --- [lightcare-server] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3817 ms
+2026-06-20T09:26:39.717+08:00  INFO 14120 --- [lightcare-server] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-20T09:26:40.182+08:00  INFO 14120 --- [lightcare-server] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@39ead1b7
+2026-06-20T09:26:40.184+08:00  INFO 14120 --- [lightcare-server] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-20T09:26:40.554+08:00  INFO 14120 --- [lightcare-server] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/lightcare (PostgreSQL 16.13)
+2026-06-20T09:26:41.525+08:00  INFO 14120 --- [lightcare-server] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 5 migrations (execution time 00:00.278s)
+2026-06-20T09:26:41.617+08:00  INFO 14120 --- [lightcare-server] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 5
+2026-06-20T09:26:41.623+08:00  INFO 14120 --- [lightcare-server] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-06-20T09:26:41.832+08:00  INFO 14120 --- [lightcare-server] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-20T09:26:41.935+08:00  INFO 14120 --- [lightcare-server] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.2.Final
+2026-06-20T09:26:41.983+08:00  INFO 14120 --- [lightcare-server] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-06-20T09:26:42.419+08:00  INFO 14120 --- [lightcare-server] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-20T09:26:43.849+08:00  INFO 14120 --- [lightcare-server] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-20T09:26:43.849+08:00  INFO 14120 --- [lightcare-server] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-20T09:26:44.166+08:00  INFO 14120 --- [lightcare-server] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-06-20T09:26:45.597+08:00  WARN 14120 --- [lightcare-server] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 29a41417-805b-4ccd-a721-324e1def3f85
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-06-20T09:26:45.619+08:00  INFO 14120 --- [lightcare-server] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-06-20T09:26:46.446+08:00  INFO 14120 --- [lightcare-server] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-06-20T09:26:46.496+08:00  INFO 14120 --- [lightcare-server] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7dc8d054, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@67775d80, org.springframework.security.web.context.SecurityContextHolderFilter@726c1889, org.springframework.security.web.header.HeaderWriterFilter@61cbcf87, org.springframework.web.filter.CorsFilter@47c06ea9, org.springframework.security.web.authentication.logout.LogoutFilter@d61ac34, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4fd7c296, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@33dbd53, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@53a8059, org.springframework.security.web.session.SessionManagementFilter@24546513, org.springframework.security.web.access.ExceptionTranslationFilter@7346bede, org.springframework.security.web.access.intercept.AuthorizationFilter@5cb3fff1]
+2026-06-20T09:26:47.562+08:00  INFO 14120 --- [lightcare-server] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-06-20T09:26:47.562+08:00  INFO 14120 --- [lightcare-server] [           main] c.l.server.LightCareServerApplication    : Started LightCareServerApplication in 13.423 seconds (process running for 14.106)
+2026-06-20T09:26:52.205+08:00  INFO 14120 --- [lightcare-server] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-20T09:26:52.205+08:00  INFO 14120 --- [lightcare-server] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-20T09:26:52.207+08:00  INFO 14120 --- [lightcare-server] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-06-20T17:07:58.879+08:00  WARN 14120 --- [lightcare-server] [l-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=3m3s850ms111?s100ns).
+2026-06-21T00:24:10.574+08:00  WARN 14120 --- [lightcare-server] [l-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=52s947ms991?s900ns).
+2026-06-21T00:26:18.347+08:00  WARN 14120 --- [lightcare-server] [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@5fae71b8 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-06-21T00:26:18.347+08:00  WARN 14120 --- [lightcare-server] [io-8080-exec-10] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@388ad5a8 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-06-21T00:26:18.347+08:00  WARN 14120 --- [lightcare-server] [nio-8080-exec-3] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@3afc3deb (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-06-21T00:26:18.347+08:00  WARN 14120 --- [lightcare-server] [nio-8080-exec-4] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection org.postgresql.jdbc.PgConnection@4574f63 (This connection has been closed.). Possibly consider using a shorter maxLifetime value.
+2026-06-21T00:26:32.043+08:00  WARN 14120 --- [lightcare-server] [nio-8080-exec-4] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08003
+2026-06-21T00:26:32.043+08:00  WARN 14120 --- [lightcare-server] [nio-8080-exec-3] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08003
+2026-06-21T00:26:32.043+08:00  WARN 14120 --- [lightcare-server] [io-8080-exec-10] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08003
+2026-06-21T00:26:32.043+08:00  WARN 14120 --- [lightcare-server] [nio-8080-exec-5] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 08003
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [nio-8080-exec-3] o.h.engine.jdbc.spi.SqlExceptionHelper   : HikariPool-1 - Connection is not available, request timed out after 213196ms (total=6, active=0, idle=6, waiting=0)
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [nio-8080-exec-4] o.h.engine.jdbc.spi.SqlExceptionHelper   : HikariPool-1 - Connection is not available, request timed out after 213206ms (total=6, active=0, idle=6, waiting=0)
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [nio-8080-exec-5] o.h.engine.jdbc.spi.SqlExceptionHelper   : HikariPool-1 - Connection is not available, request timed out after 215461ms (total=6, active=0, idle=6, waiting=0)
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [io-8080-exec-10] o.h.engine.jdbc.spi.SqlExceptionHelper   : HikariPool-1 - Connection is not available, request timed out after 215461ms (total=6, active=0, idle=6, waiting=0)
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [nio-8080-exec-3] o.h.engine.jdbc.spi.SqlExceptionHelper   : This connection has been closed.
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [io-8080-exec-10] o.h.engine.jdbc.spi.SqlExceptionHelper   : This connection has been closed.
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [nio-8080-exec-5] o.h.engine.jdbc.spi.SqlExceptionHelper   : This connection has been closed.
+2026-06-21T00:26:32.095+08:00 ERROR 14120 --- [lightcare-server] [nio-8080-exec-4] o.h.engine.jdbc.spi.SqlExceptionHelper   : This connection has been closed.

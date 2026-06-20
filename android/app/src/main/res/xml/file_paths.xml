@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider 路径配置：允许把 cache 目录下的拍照临时文件通过 content:// 暴露给系统相机。
+  系统相机拍完会写入我们提供的 uri（位于 cache 拍照子目录），拍完回调拿这个 uri 读图。
+-->
+<paths>
+    <!-- 拍照临时文件：app 内 cache/photo/ -->
+    <cache-path
+        name="photo"
+        path="photo/" />
+    <!-- 兼容：直接走 cache 根（如果未来放其他文件） -->
+    <cache-path
+        name="cache"
+        path="." />
+</paths>

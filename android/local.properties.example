@@ -1,0 +1,8 @@
+# 示例 local.properties —— Android Studio 第一次打开本工程时会自动生成
+# 不要把真实的 local.properties 提交到 git
+#
+# Windows 路径示例（任选一个，本机是 AS 默认安装时一般在这里）：
+# sdk.dir=C\:\\Users\\<你的用户名>\\AppData\\Local\\Android\\Sdk
+# macOS / Linux 路径示例：
+# sdk.dir=/Users/<你的用户名>/Library/Android/sdk
+# sdk.dir=/home/<你的用户名>/Android/Sdk

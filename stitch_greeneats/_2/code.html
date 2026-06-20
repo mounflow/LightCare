@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LightCare - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "outline": "#747878",
+                        "surface-container-highest": "#e1e3e4",
+                        "tertiary-fixed": "#e6e1df",
+                        "inverse-primary": "#c8c6c5",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#484645",
+                        "on-surface": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "on-primary-fixed-variant": "#474646",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#1c1b1b",
+                        "surgical-green": "#00A36C",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "on-primary": "#ffffff",
+                        "border-subtle": "#E2E8F0",
+                        "surface": "#f8fafb",
+                        "surface-container-high": "#e6e8e9",
+                        "secondary": "#006c46",
+                        "surface-tint": "#5f5e5e",
+                        "secondary-fixed-dim": "#5ddda1",
+                        "inverse-on-surface": "#eff1f2",
+                        "primary": "#000000",
+                        "surface-bright": "#f8fafb",
+                        "secondary-container": "#7bfabb",
+                        "on-surface-variant": "#444748",
+                        "on-tertiary-fixed": "#1c1b1a",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#cac6c3",
+                        "secondary-fixed": "#7bfabb",
+                        "surface-container-low": "#f2f4f5",
+                        "on-background": "#191c1d",
+                        "tertiary": "#000000",
+                        "border-strong": "#121212",
+                        "on-primary-container": "#858383",
+                        "surface-variant": "#e1e3e4",
+                        "outline-variant": "#c4c7c7",
+                        "surface-container": "#eceeef",
+                        "on-secondary-fixed": "#002112",
+                        "on-secondary-container": "#00734b",
+                        "tertiary-container": "#1c1b1a",
+                        "on-tertiary-container": "#868381",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#f8fafb",
+                        "on-secondary-fixed-variant": "#005234",
+                        "clinical-charcoal": "#121212",
+                        "error-container": "#ffdad6",
+                        "pure-white": "#FFFFFF",
+                        "surface-dim": "#d8dadb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "margin-desktop": "64px",
+                        "sm": "8px",
+                        "xl": "40px",
+                        "lg": "24px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f8fafb; /* background */
+            color: #191c1d; /* on-background */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .wireframe-border {
+            border: 1px solid #E2E8F0; /* border-subtle */
+        }
+        .wireframe-border-active {
+            border: 1px solid #121212; /* clinical-charcoal */
+        }
+        .surgical-accent {
+            border-left: 2px solid #00A36C; /* surgical-green */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col pt-20 pb-16 md:pb-0">
+<!-- TopAppBar (Shared Component) -->
+<header class="bg-pure-white border-b border-border-subtle flat no shadows fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20">
+<div class="flex items-center gap-sm cursor-pointer hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+</div>
+<h1 class="font-headline-md text-headline-md text-primary font-bold tracking-tight">LightCare</h1>
+<div class="flex items-center gap-sm cursor-pointer hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</div>
+</header>
+<main class="flex-grow flex flex-col md:grid md:grid-cols-12 max-w-[1440px] mx-auto w-full gap-x-gutter px-margin-mobile md:px-margin-desktop py-xl">
+<!-- Dashboard Content Area -->
+<div class="col-span-12 md:col-span-8 md:col-start-3 flex flex-col gap-xl">
+<!-- Progress Section (Line-work Progress View) -->
+<section class="flex flex-col gap-lg">
+<header class="flex justify-between items-end pb-sm border-b wireframe-border">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight">本周进度</h2>
+<span class="font-label-md text-label-md text-outline">第 14 周</span>
+</header>
+<div class="flex justify-between items-stretch h-32 pt-md">
+<!-- Days -->
+<div class="flex flex-col items-center justify-end w-full border-r wireframe-border pb-sm">
+<span class="font-label-sm text-label-sm text-outline mb-xs">一</span>
+<div class="w-1 h-4 bg-border-subtle rounded-sm"></div>
+</div>
+<div class="flex flex-col items-center justify-end w-full border-r wireframe-border pb-sm">
+<span class="font-label-sm text-label-sm text-outline mb-xs">二</span>
+<div class="w-1 h-8 bg-border-subtle rounded-sm"></div>
+</div>
+<!-- Active Day -->
+<div class="flex flex-col items-center justify-end w-full border-r wireframe-border-active pb-sm relative bg-surface-container-low">
+<span class="font-label-sm text-label-sm text-primary mb-xs font-bold">三</span>
+<div class="w-1 h-16 bg-clinical-charcoal rounded-sm"></div>
+</div>
+<div class="flex flex-col items-center justify-end w-full border-r wireframe-border pb-sm">
+<span class="font-label-sm text-label-sm text-outline mb-xs">四</span>
+<div class="w-1 h-0 bg-transparent"></div>
+</div>
+<div class="flex flex-col items-center justify-end w-full border-r wireframe-border pb-sm">
+<span class="font-label-sm text-label-sm text-outline mb-xs">五</span>
+<div class="w-1 h-0 bg-transparent"></div>
+</div>
+<div class="flex flex-col items-center justify-end w-full border-r wireframe-border pb-sm">
+<span class="font-label-sm text-label-sm text-outline mb-xs">六</span>
+<div class="w-1 h-0 bg-transparent"></div>
+</div>
+<div class="flex flex-col items-center justify-end w-full pb-sm">
+<span class="font-label-sm text-label-sm text-outline mb-xs">日</span>
+<div class="w-1 h-0 bg-transparent"></div>
+</div>
+</div>
+<!-- Today's Remnants -->
+<div class="wireframe-border bg-pure-white p-lg flex flex-col gap-md">
+<h3 class="font-label-md text-label-md text-outline uppercase tracking-widest">今日余量</h3>
+<div class="flex flex-col gap-sm">
+<!-- Protein -->
+<div class="flex items-center gap-sm">
+<span class="font-label-sm text-label-sm w-12 text-primary">蛋白质</span>
+<div class="flex-grow h-1 bg-surface-container-highest relative">
+<div class="absolute top-0 left-0 h-full bg-clinical-charcoal" style="width: 45%;"></div>
+</div>
+<span class="font-label-sm text-label-sm w-20 text-right">剩 25g</span>
+</div>
+<!-- Fat -->
+<div class="flex items-center gap-sm">
+<span class="font-label-sm text-label-sm w-12 text-primary">脂肪</span>
+<div class="flex-grow h-1 bg-surface-container-highest relative">
+<div class="absolute top-0 left-0 h-full bg-clinical-charcoal" style="width: 70%;"></div>
+</div>
+<span class="font-label-sm text-label-sm w-20 text-right">剩 18g</span>
+</div>
+<!-- Carbs -->
+<div class="flex items-center gap-sm">
+<span class="font-label-sm text-label-sm w-12 text-primary">碳水</span>
+<div class="flex-grow h-1 bg-surface-container-highest relative">
+<div class="absolute top-0 left-0 h-full bg-clinical-charcoal" style="width: 20%;"></div>
+</div>
+<span class="font-label-sm text-label-sm w-20 text-right">剩 60g</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Engine Section -->
+<section class="flex flex-col gap-lg pt-lg border-t wireframe-border">
+<header class="flex flex-col pb-sm">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight">推荐引擎</h2>
+<p class="font-body-md text-body-md text-outline mt-xs">基于余量计算的最优解。</p>
+</header>
+<!-- Optimal Recipe Card -->
+<div class="wireframe-border bg-pure-white p-lg flex flex-col gap-lg surgical-accent">
+<div class="flex justify-between items-start border-b wireframe-border pb-md">
+<div>
+<span class="inline-block bg-surface px-sm py-xs font-label-sm text-label-sm text-clinical-charcoal wireframe-border rounded mb-sm">唯一最优解</span>
+<h3 class="font-headline-md text-headline-md text-primary font-medium tracking-tight">金枪鱼全麦三明治</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Tuna Whole Wheat Sandwich</p>
+</div>
+<span class="material-symbols-outlined text-primary text-xl">restaurant</span>
+</div>
+<div class="grid grid-cols-4 gap-sm">
+<div class="flex flex-col gap-xs p-sm bg-surface-bright wireframe-border text-center">
+<span class="font-label-sm text-label-sm text-outline">热量</span>
+<span class="font-body-md text-body-md text-primary font-medium">350</span>
+</div>
+<div class="flex flex-col gap-xs p-sm bg-surface-bright wireframe-border text-center">
+<span class="font-label-sm text-label-sm text-outline">蛋白</span>
+<span class="font-body-md text-body-md text-primary font-medium">28g</span>
+</div>
+<div class="flex flex-col gap-xs p-sm bg-surface-bright wireframe-border text-center">
+<span class="font-label-sm text-label-sm text-outline">脂肪</span>
+<span class="font-body-md text-body-md text-primary font-medium">12g</span>
+</div>
+<div class="flex flex-col gap-xs p-sm bg-surface-bright wireframe-border text-center">
+<span class="font-label-sm text-label-sm text-outline">碳水</span>
+<span class="font-body-md text-body-md text-primary font-medium">30g</span>
+</div>
+</div>
+<button class="w-full bg-clinical-charcoal text-pure-white font-label-md text-label-md py-md rounded hover:bg-opacity-90 transition-colors flex justify-center items-center gap-sm uppercase tracking-wider">
+<span class="material-symbols-outlined" style="font-size: 18px;">check</span>
+                        √ 就吃这个
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Shared Component) -->
+<nav class="bg-pure-white border-t border-border-subtle flat no shadows fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-16 md:hidden">
+<a class="flex flex-col items-center justify-center text-primary border-t-2 border-primary pt-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-xs">主页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline pt-2 hover:text-primary transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-label-sm text-label-sm mt-xs">添加</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline pt-2 hover:text-primary transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-sm text-label-sm mt-xs">数据</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline pt-2 hover:text-primary transition-colors active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-label-sm mt-xs">设置</span>
+</a>
+</nav>
+</body></html>
