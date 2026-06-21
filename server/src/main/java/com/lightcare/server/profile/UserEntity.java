@@ -24,6 +24,10 @@ public class UserEntity {
     @Column(name = "wechat_open_id", length = 64, unique = true)
     private String wechatOpenId;
 
+    /** 账号系统：bcrypt 哈希（~60 字符，128 足够）；null = 老 bootstrap 创建的占位 user，未走 register */
+    @Column(name = "password_hash", length = 128)
+    private String passwordHash;
+
     @Column(length = 64, nullable = false)
     private String nickname;
 

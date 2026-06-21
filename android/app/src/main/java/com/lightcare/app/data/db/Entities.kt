@@ -88,7 +88,7 @@ interface FoodItemDao {
 
 @Database(
     entities = [MealCacheEntity::class, FoodItemEntity::class],
-    version = 6,                   // V6: meal_cache 加 itemsJson（按食物分类染色用）
+    version = 7,                   // V7: PR-Auth —— 升级账号系统；旧缓存清空（未按 userId 隔离，跨账号会有脏读）
     exportSchema = false
 )
 abstract class LightCareDatabase : RoomDatabase() {

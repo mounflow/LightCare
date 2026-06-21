@@ -246,7 +246,7 @@ fun PhysiqueEditorDialog(
                         ) {
                             Text(
                                 label,
-                                color = if (sel) androidx.compose.ui.graphics.Color.White else Primary,
+                                color = if (sel) OnPrimary else Primary,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -273,7 +273,7 @@ fun PhysiqueEditorDialog(
                             ) {
                                 Text(
                                     label,
-                                    color = if (sel) androidx.compose.ui.graphics.Color.White else Primary,
+                                    color = if (sel) OnPrimary else Primary,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.SemiBold
                                 )

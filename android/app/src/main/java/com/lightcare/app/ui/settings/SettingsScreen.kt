@@ -16,10 +16,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -48,8 +53,12 @@ import com.lightcare.app.ui.theme.surgicalAccent
 fun SettingsScreen(
     onSwitchProfile: () -> Unit = {},
     onNavigateToFoodLibrary: () -> Unit = {},
-    onNavigateToPhysique: () -> Unit = {}
+    onNavigateToPhysique: () -> Unit = {},
+    vm: SettingsViewModel = hiltViewModel()
 ) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -89,7 +98,36 @@ fun SettingsScreen(
                     )
                 }
             }
+            // PR-Auth：退出登录（清 server 端会话 + 本地账号 + 本地缓存）
+            item {
+                Box(Modifier.padding(horizontal = S.screenH)) {
+                    EntryCard(
+                        emoji = "🚪", title = "退出登录",
+                        subtitle = "清除本机账号与缓存，下次打开需重新登录",
+                        onClick = { showLogoutDialog = true }
+                    )
+                }
+            }
         }
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("确定要退出登录？", fontWeight = FontWeight.SemiBold) },
+            text = { Text("会清掉本机所有食物和记录缓存（服务器端的数据保留，重新登录即可看到）。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    vm.logout {
+                        android.widget.Toast.makeText(ctx, "已退出登录", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }) { Text("退出", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) { Text("取消") }
+            }
+        )
     }
 }
 
@@ -133,15 +171,15 @@ private fun CurrentProfileCard() {
             style = MaterialTheme.typography.labelMedium,
             color = Outline
         )
-        // 目标网格：热量/蛋白/碳水/水分/步数，紧凑对齐（去掉单独步数行）
+        // 目标网格：热量/蛋白/水分/蔬果/步数。target 为 null → 显示"—"（用户没填身体数据）。
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(S.sm)) {
-            LCStatCell("热量", "${p.calorieTargetKcal}", "kcal", emoji = "🔥", modifier = Modifier.weight(1f))
-            LCStatCell("蛋白", "${p.proteinTargetG}", "g", emoji = "💪", modifier = Modifier.weight(1f))
-            LCStatCell("水分", "${p.waterTargetMl / 250}", "杯", emoji = "💧", modifier = Modifier.weight(1f))
+            LCStatCell("热量", "${p.calorieTargetKcal ?: "—"}", "kcal", emoji = "🔥", modifier = Modifier.weight(1f))
+            LCStatCell("蛋白", "${p.proteinTargetG ?: "—"}", "g", emoji = "💪", modifier = Modifier.weight(1f))
+            LCStatCell("水分", "${(p.waterTargetMl ?: 0) / 250}", "杯", emoji = "💧", modifier = Modifier.weight(1f))
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(S.sm)) {
             LCStatCell("蔬果", "${p.vegTargetServings}", "份", emoji = "🥦", modifier = Modifier.weight(1f))
-            LCStatCell("步数", "${p.stepTarget / 1000}", "千步", emoji = "👟", modifier = Modifier.weight(1f))
+            LCStatCell("步数", "${(p.stepTarget ?: 0) / 1000}", "千步", emoji = "👟", modifier = Modifier.weight(1f))
         }
     }
 }

@@ -122,4 +122,39 @@ interface LightCareApi {
         @Query("action") action: String,
         @Query("newName") newName: String?
     ): ApiResponse<Unit>
+
+    // ===== PR-Recipe: 食物做法（食材 / 调料 / 步骤 / 烹饪时间 / 难度）=====
+
+    /**
+     * 读 recipe。server 返 404 时 Retrofit 会抛 HttpException，repository 转成 null（"无做法"）。
+     */
+    @GET("/v1/foods/{id}/recipe")
+    suspend fun getRecipe(@Path("id") id: Long): ApiResponse<RecipeDto>
+
+    /**
+     * upsert recipe。null 字段 = 不修改；空 list = 清空；仅自己的食物可写（种子 403）。
+     */
+    @PUT("/v1/foods/{id}/recipe")
+    suspend fun upsertRecipe(
+        @Path("id") id: Long,
+        @Body req: UpsertRecipeReq
+    ): ApiResponse<RecipeDto>
+
+    // ===== PR-Auth: 账号系统 =====
+
+    /** 注册：手机号 + 密码 + displayName，返回 userId/token/自动建的默认 SELF profile。 */
+    @POST("/v1/auth/register")
+    suspend fun register(@Body req: RegisterReq): ApiResponse<AuthRes>
+
+    /** 登录：手机号 + 密码，返回 userId/token + profile=null（登录后由 /v1/profiles 列已存在的档案）。 */
+    @POST("/v1/auth/login")
+    suspend fun login(@Body req: LoginReq): ApiResponse<AuthRes>
+
+    /** 当前账号信息（token 续期 / 校验 server 侧还活着）。 */
+    @GET("/v1/auth/me")
+    suspend fun me(): ApiResponse<AuthMeRes>
+
+    /** 退出登录（fire-and-forget；server 端无状态，仅前端清 local cache）。 */
+    @POST("/v1/auth/logout")
+    suspend fun logout(): ApiResponse<Unit>
 }

@@ -20,9 +20,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.lightcare.app.data.auth.AuthStore
+import com.lightcare.app.ui.auth.AuthNavGraph
 import com.lightcare.app.ui.food.FoodConflictSheet
 import com.lightcare.app.ui.food.FoodConflictViewModel
 import com.lightcare.app.ui.food.FoodLibraryScreen
+import com.lightcare.app.ui.food.detail.FoodDetailScreen
 import com.lightcare.app.ui.history.MealHistoryScreen
 import com.lightcare.app.ui.home.HomeScreen
 import com.lightcare.app.ui.insight.InsightScreen
@@ -53,13 +55,17 @@ class MainActivity : ComponentActivity() {
                         .statusBarsPadding(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // 顶层：profileId == null → 选档页；非 null → 主页（内部 NavHost 管二级页）。
+                    // PR-Auth 三态：
+                    //   token == null      → AuthNavGraph (登录 / 注册)
+                    //   profileId == null  → ProfileSelectionScreen (选档 / 建档，登录后还没选)
+                    //   都非 null          → MainNavGraph (主页 + 二级页)
+                    val token by authStore.tokenFlow.collectAsStateWithLifecycle(initialValue = null)
                     val profileId by authStore.profileIdFlow.collectAsStateWithLifecycle(initialValue = null)
 
-                    if (profileId == null) {
-                        ProfileSelectionScreen()
-                    } else {
-                        MainNavGraph(authStore)
+                    when {
+                        token.isNullOrBlank() -> AuthNavGraph(onAuthed = { /* tokenFlow 自动切到下一态 */ })
+                        profileId == null -> ProfileSelectionScreen()
+                        else -> MainNavGraph(authStore)
                     }
                 }
             }
@@ -111,7 +117,9 @@ private fun MainNavGraph(authStore: AuthStore) {
                 when (tab) {
                     MainTab.Home -> HomeScreen(
                         refreshKey = refreshKey,
-                        onViewHistory = { nav.navigate("meal_history") }
+                        onViewHistory = { nav.navigate("meal_history") },
+                        onOpenFood = { foodId -> nav.navigate("food_detail/$foodId") },
+                        onOpenPhysique = { nav.navigate("physique") }
                     )
                     MainTab.Data -> InsightScreen(onViewHistory = { nav.navigate("meal_history") })
                     MainTab.Settings -> SettingsScreen(
@@ -155,7 +163,16 @@ private fun MainNavGraph(authStore: AuthStore) {
             )
         }
         composable("food_library") {
-            FoodLibraryScreen(onBack = { nav.popBackStack() })
+            FoodLibraryScreen(
+                onBack = { nav.popBackStack() },
+                onOpenFood = { foodId -> nav.navigate("food_detail/$foodId") }
+            )
+        }
+        composable(
+            route = "food_detail/{foodId}",
+            arguments = listOf(androidx.navigation.navArgument("foodId") { type = androidx.navigation.NavType.LongType })
+        ) {
+            FoodDetailScreen(onBack = { nav.popBackStack() })
         }
         composable("meal_history") {
             MealHistoryScreen(onBack = { nav.popBackStack() })

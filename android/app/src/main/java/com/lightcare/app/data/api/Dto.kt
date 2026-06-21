@@ -50,11 +50,15 @@ data class ProfileDto(
     val heightCm: Int?,
     val weightKg: Double?,
     val activityLevel: String?,
-    val proteinTargetG: Int,
+    /**
+     * 营养目标值 —— 用户还没填身高体重/年龄时为 null。
+     * 前端据此显示"—" + 引导去"我的身体数据"补全（不展示假数据）。
+     */
+    val proteinTargetG: Int?,
     val vegTargetServings: Int,
-    val waterTargetMl: Int,
-    val stepTarget: Int,
-    val calorieTargetKcal: Int
+    val waterTargetMl: Int?,
+    val stepTarget: Int?,
+    val calorieTargetKcal: Int?
 )
 
 @JsonClass(generateAdapter = true)
@@ -140,8 +144,27 @@ data class RecognizedItem(
     val sugarG: Double = 0.0,
     val sodiumMg: Int = 0,
     val waterMl: Int = 0,           // PR1: M3 估算含水量（毫升）
-    val confidence: Double = 0.0
+    val confidence: Double = 0.0,
+    val recipe: RecipeHintDto? = null   // PR-Recipe: M3 顺便输出的做法提示（旧识别结果无此字段，默 null）
 )
+
+/** PR-Recipe: 识别时 M3 返回的做法提示（轻量版，不持久化）。 */
+@JsonClass(generateAdapter = true)
+data class RecipeHintDto(
+    val cookingMinutes: Int = 0,
+    val difficulty: String? = null,
+    val ingredients: List<RecipeItemDto> = emptyList(),
+    val seasonings: List<RecipeItemDto> = emptyList(),
+    val steps: List<RecipeStepDto> = emptyList()
+)
+
+/** PR-Recipe: 食材 / 调料一行（用量字符串，如 "2 个" / "100g"）。 */
+@JsonClass(generateAdapter = true)
+data class RecipeItemDto(val name: String = "", val amount: String = "")
+
+/** PR-Recipe: 做法一步。order 给 1-based 排序用，text 是中文描述。 */
+@JsonClass(generateAdapter = true)
+data class RecipeStepDto(val order: Int = 0, val text: String = "")
 
 /** PR-D: 食物库条目（与 server FoodController.FoodDto 对齐）。 */
 @JsonClass(generateAdapter = true)
@@ -178,4 +201,72 @@ data class UpsertFoodReq(
     val fiberG: Double = 0.0,
     val waterMl: Int = 0,
     val vegServings: Int = 0
+)
+
+/** PR-Recipe: 食物完整做法（GET /v1/foods/{id}/recipe 返回）。 */
+@JsonClass(generateAdapter = true)
+data class RecipeDto(
+    val foodId: Long,
+    val cookingMinutes: Int = 0,
+    val difficulty: String = "EASY",
+    val ingredients: List<RecipeItemDto> = emptyList(),
+    val seasonings: List<RecipeItemDto> = emptyList(),
+    val steps: List<RecipeStepDto> = emptyList(),
+    /** MANUAL = 用户手填；AI = M3 自动生成。 */
+    val source: String = "MANUAL"
+) {
+    /** 是否值得展示做法区块（M3 没把握 / 用户没填都走"无做法"空状态）。 */
+    val isEmpty: Boolean
+        get() = cookingMinutes <= 0
+            && ingredients.isEmpty()
+            && seasonings.isEmpty()
+            && steps.isEmpty()
+}
+
+/** PR-Recipe: upsert 请求。null = "不修改"，空 list = "清空"。 */
+@JsonClass(generateAdapter = true)
+data class UpsertRecipeReq(
+    val cookingMinutes: Int? = null,
+    val difficulty: String? = null,
+    val ingredients: List<RecipeItemDto>? = null,
+    val seasonings: List<RecipeItemDto>? = null,
+    val steps: List<RecipeStepDto>? = null,
+    val source: String? = null
+)
+
+// ===== PR-Auth: 账号系统（手机号 + 密码 + JWT）=====
+
+/** 注册请求：必填 phone + password + displayName；身高体重可空（注册时填了 server 用来算默认目标值）。 */
+@JsonClass(generateAdapter = true)
+data class RegisterReq(
+    val phone: String,
+    val password: String,
+    val displayName: String,
+    val heightCm: Int? = null,
+    val weightKg: Double? = null
+)
+
+/** 登录请求：手机号 + 密码。 */
+@JsonClass(generateAdapter = true)
+data class LoginReq(
+    val phone: String,
+    val password: String
+)
+
+/** 注册 / 登录响应：userId + phone + nickname + token + 可选 profile（注册时 server 自动建默认 SELF profile）。 */
+@JsonClass(generateAdapter = true)
+data class AuthRes(
+    val userId: Long,
+    val phone: String,
+    val nickname: String,
+    val token: String,
+    val profile: ProfileDto? = null
+)
+
+/** /v1/auth/me 响应：仅基本信息（不带 token / profile）。 */
+@JsonClass(generateAdapter = true)
+data class AuthMeRes(
+    val userId: Long,
+    val phone: String,
+    val nickname: String
 )

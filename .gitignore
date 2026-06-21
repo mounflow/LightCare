@@ -1,2 +1,14 @@
 # 本机工作流目录，避免暴露个人 Claude 配置
 .claude/
+
+# 本地日志文件（server-run.log / server/server.log）
+*.log
+server/server.log
+server-run.log
+
+# 测试截图（android/ 根目录的 PNG 都是 adb 调试截图，不入库）
+android/*.png
+lc-*.png
+
+# server 临时脚本（curl 测试 json 文件）
+server/tmp/
