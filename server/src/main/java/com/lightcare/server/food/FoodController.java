@@ -1,5 +1,7 @@
 package com.lightcare.server.food;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lightcare.server.common.ApiError;
 import com.lightcare.server.common.ApiException;
 import com.lightcare.server.common.ApiResponse;
@@ -29,6 +31,8 @@ import java.util.List;
 public class FoodController {
 
     private final FoodRepository foodRepo;
+    private final RecipeRepository recipeRepo;
+    private final ObjectMapper objectMapper;
 
     /** 容差：四项营养相对误差 ≤ 5% 视为相等。 */
     private static final double TOLERANCE = 0.05;
@@ -170,6 +174,120 @@ public class FoodController {
             default -> throw new ApiException(ApiError.BAD_REQUEST, "action 必须是 RENAME/OVERWRITE/SKIP");
         }
         return ApiResponse.ok(null);
+    }
+
+    // ===== Recipe（PR-Recipe，做法 / 食材 / 调料 / 烹饪时间）=====
+
+    /**
+     * 食物做法 DTO（透传给 client）。
+     * ingredients / seasonings / steps 三个 JSON 数组在 DB 是 JSONB 字符串，
+     * 在 controller 层用 ObjectMapper 反序列化给 client（client 拿到的就是结构化数组）。
+     */
+    public record RecipeDto(
+        long foodId,
+        int cookingMinutes,
+        String difficulty,
+        List<RecipeItem> ingredients,
+        List<RecipeItem> seasonings,
+        List<RecipeStep> steps,
+        String source
+    ) {}
+
+    public record RecipeItem(String name, String amount) {}
+    public record RecipeStep(int order, String text) {}
+
+    /** 客户端 upsert recipe 请求。空列表用 null 表示"未填"，避免误清空。 */
+    public record UpsertRecipeReq(
+        Integer cookingMinutes,
+        String difficulty,
+        List<RecipeItem> ingredients,
+        List<RecipeItem> seasonings,
+        List<RecipeStep> steps,
+        String source
+    ) {}
+
+    /**
+     * 读 recipe。404 = 该食物还没填做法。鉴权：要求 caller 必须能看见这个 food（自己 / 全局种子）。
+     */
+    @GetMapping("/{id}/recipe")
+    public ApiResponse<RecipeDto> getRecipe(@CurrentUserAnnotation long userId, @PathVariable long id) {
+        FoodEntity f = foodRepo.findById(id)
+            .orElseThrow(() -> new ApiException(ApiError.NOT_FOUND));
+        if (f.getOwnerUserId() != null && !f.getOwnerUserId().equals(userId)) {
+            throw new ApiException(ApiError.FORBIDDEN);
+        }
+        RecipeEntity r = recipeRepo.findById(id).orElse(null);
+        if (r == null) {
+            throw new ApiException(ApiError.NOT_FOUND);
+        }
+        return ApiResponse.ok(toRecipeDto(r));
+    }
+
+    /**
+     * 写 recipe（upsert）。只允许改自己的食物（全局种子不可改，避免污染共享数据）。
+     * - 任何字段为 null 表示"不修改"（upsert 语义）
+     * - ingredients/seasonings/steps 显式传空数组 = "清空"；不传 = "不修改"
+     */
+    @PutMapping("/{id}/recipe")
+    @Transactional
+    public ApiResponse<RecipeDto> upsertRecipe(@CurrentUserAnnotation long userId,
+                                               @PathVariable long id,
+                                               @RequestBody UpsertRecipeReq req) {
+        FoodEntity f = mustOwn(userId, id);   // 必是自己的（种子会 403）
+        RecipeEntity r = recipeRepo.findById(id).orElseGet(() -> {
+            RecipeEntity n = new RecipeEntity();
+            n.setFoodId(f.getId());
+            return n;
+        });
+        if (req.cookingMinutes() != null) r.setCookingMinutes(req.cookingMinutes());
+        if (req.difficulty() != null && !req.difficulty().isBlank()) {
+            try { r.setDifficulty(RecipeEntity.Difficulty.valueOf(req.difficulty().toUpperCase())); }
+            catch (IllegalArgumentException e) { throw new ApiException(ApiError.BAD_REQUEST, "difficulty 必须是 EASY/MEDIUM/HARD"); }
+        }
+        if (req.ingredients() != null) r.setIngredientsJson(serializeJson(req.ingredients()));
+        if (req.seasonings() != null) r.setSeasoningsJson(serializeJson(req.seasonings()));
+        if (req.steps() != null) r.setStepsJson(serializeJson(req.steps()));
+        if (req.source() != null && !req.source().isBlank()) {
+            try { r.setSource(RecipeEntity.Source.valueOf(req.source().toUpperCase())); }
+            catch (IllegalArgumentException e) { throw new ApiException(ApiError.BAD_REQUEST, "source 必须是 MANUAL/AI"); }
+        } else if (r.getSource() == null) {
+            r.setSource(RecipeEntity.Source.MANUAL);
+        }
+        recipeRepo.save(r);
+        return ApiResponse.ok(toRecipeDto(r));
+    }
+
+    /** 序列化 list → JSON 字符串。空 list 也写 "[]"（不让列存 null）。 */
+    private String serializeJson(Object list) {
+        try {
+            String s = objectMapper.writeValueAsString(list);
+            return (s == null || s.isEmpty()) ? "[]" : s;
+        } catch (Exception e) {
+            log.warn("recipe json serialize failed", e);
+            return "[]";
+        }
+    }
+
+    private RecipeDto toRecipeDto(RecipeEntity r) {
+        return new RecipeDto(
+            r.getFoodId(),
+            r.getCookingMinutes(),
+            r.getDifficulty().name(),
+            parseList(r.getIngredientsJson(), RecipeItem.class),
+            parseList(r.getSeasoningsJson(), RecipeItem.class),
+            parseList(r.getStepsJson(), RecipeStep.class),
+            r.getSource() == null ? "MANUAL" : r.getSource().name()
+        );
+    }
+
+    private <T> List<T> parseList(String json, Class<T> clazz) {
+        if (json == null || json.isBlank() || json.equals("[]")) return List.of();
+        try {
+            return objectMapper.readValue(json, objectMapper.getTypeFactory().constructCollectionType(List.class, clazz));
+        } catch (Exception e) {
+            log.warn("recipe json parse failed: {}", json, e);
+            return List.of();
+        }
     }
 
     // ===== 共享：重名判定（PR-D 的 FoodAutoUpsertService 也会复用同口径） =====

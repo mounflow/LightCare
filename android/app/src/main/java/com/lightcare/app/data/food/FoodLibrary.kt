@@ -21,7 +21,9 @@ data class FoodItem(
     val perServingCarb: Double = 0.0,
     val perServingWaterMl: Int = 0,  // PR1: 一份含水量（毫升）；米饭≈50，鸡胸≈65，苹果≈85，牛奶 250，汤 200
     val isDefault: Boolean = true,   // 内置=true 不可删；用户自定义=false
-    val customId: Long? = null       // 自定义食物的 DB id（用于删除）；内置为 null
+    val customId: Long? = null,      // 自定义食物的 DB id（用于删除）；内置为 null
+    /** PR-Recipe: server 端 foodId（用于跳详情页 / 编辑做法）。本地 DEFAULTS 没有 server id。 */
+    val serverId: Long? = null
 )
 
 object FoodLibrary {

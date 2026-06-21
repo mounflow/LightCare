@@ -31,7 +31,9 @@ class FoodLibraryViewModel @Inject constructor(
         val message: String? = null,
         /** P39：多选模式 + 已选中的 customId 集合（内置不可选/不可删） */
         val selectionMode: Boolean = false,
-        val selectedCustomIds: Set<Long> = emptySet()
+        val selectedCustomIds: Set<Long> = emptySet(),
+        /** PR-Recipe: 最近一次新建的 customId（>0）。UI 监听变化跳详情页让用户填做法。null = 无新创建。 */
+        val lastCreatedFoodId: Long? = null
     )
 
     private val _state = MutableStateFlow(UiState())
@@ -51,19 +53,33 @@ class FoodLibraryViewModel @Inject constructor(
         }
     }
 
-    /** 新增自定义食物。失败用 AddResult 区分原因（A9 文案准确）。 */
+    /** 新增自定义食物。失败用 AddResult 区分原因（A9 文案准确）。
+     *  PR-Recipe: Success 带 foodId，state 暴露给 UI 触发 "创建完跳详情填做法"。 */
     fun add(input: com.lightcare.app.data.food.FoodLibraryRepository.AddFoodInput) {
         viewModelScope.launch {
             val result = repo.addCustom(input)
-            _state.value = _state.value.copy(
-                message = when (result) {
-                    com.lightcare.app.data.food.FoodLibraryRepository.AddResult.Success -> "已添加"
-                    com.lightcare.app.data.food.FoodLibraryRepository.AddResult.EmptyName -> "名称不能为空"
-                    com.lightcare.app.data.food.FoodLibraryRepository.AddResult.DuplicateName -> "已存在同名食物"
+            when (result) {
+                is com.lightcare.app.data.food.FoodLibraryRepository.AddResult.Success -> {
+                    val createdId = result.foodId.takeIf { it > 0 }
+                    _state.value = _state.value.copy(
+                        message = "已添加",
+                        lastCreatedFoodId = createdId
+                    )
+                    load()
                 }
-            )
-            if (result == com.lightcare.app.data.food.FoodLibraryRepository.AddResult.Success) load()
+                com.lightcare.app.data.food.FoodLibraryRepository.AddResult.EmptyName -> {
+                    _state.value = _state.value.copy(message = "名称不能为空")
+                }
+                com.lightcare.app.data.food.FoodLibraryRepository.AddResult.DuplicateName -> {
+                    _state.value = _state.value.copy(message = "已存在同名食物")
+                }
+            }
         }
+    }
+
+    /** PR-Recipe: UI 拿到 lastCreatedFoodId 后调此清空，避免重建 screen 时再次跳转。 */
+    fun consumeLastCreatedFoodId() {
+        _state.update { it.copy(lastCreatedFoodId = null) }
     }
 
     /** P39：更新已有自定义食物（按 id 修改 name/category/nutrition）。 */

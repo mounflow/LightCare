@@ -8,7 +8,9 @@ data class RecommendCardDto(
     val kind: String,
     val status: String,
     val title: String,
-    val body: String
+    val body: String,
+    /** PR-Recipe: meal 类卡关联的 foodId（exercise 类为 null）；点推荐卡跳详情页用。 */
+    val foodId: Long? = null
 )
 
 @JsonClass(generateAdapter = true)

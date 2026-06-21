@@ -73,9 +73,10 @@ class FoodLibraryRepository @Inject constructor(
         val perServingG: Int = 0
     )
 
-    /** 新增结果，区分原因（A9 让 UI 能给准确文案）。 */
+    /** 新增结果，区分原因（A9 让 UI 能给准确文案）。
+     *  PR-Recipe: Success 携带 server foodId，方便 UI 跳详情页继续填做法。 */
     sealed class AddResult {
-        object Success : AddResult()
+        data class Success(val foodId: Long) : AddResult()
         object EmptyName : AddResult()
         object DuplicateName : AddResult()
     }
@@ -102,10 +103,10 @@ class FoodLibraryRepository @Inject constructor(
             val resp = api.createFood(req)
             when {
                 resp.code == CODE_DUPLICATE -> AddResult.DuplicateName
-                resp.data != null -> AddResult.Success
+                resp.data != null -> AddResult.Success(resp.data.id)
                 else -> {
                     Log.w(tag, "createFood code=${resp.code} msg=${resp.message}")
-                    AddResult.Success   // 非 40901 的失败也算成功（不阻塞用户），下次拉取会反映真实状态
+                    AddResult.Success(-1L)   // 非 40901 的失败也算成功（不阻塞用户），但拿不到 id → UI 不跳详情
                 }
             }
         } catch (e: Exception) {
@@ -113,8 +114,8 @@ class FoodLibraryRepository @Inject constructor(
             // 离线兜底：本地查重 + 落缓存
             if (customs().any { it.displayName == name }) AddResult.DuplicateName
             else {
-                dao.upsert(req.toLocalEntity())
-                AddResult.Success
+                val newId = dao.upsert(req.toLocalEntity())
+                AddResult.Success(newId)
             }
         }
     }
@@ -160,7 +161,7 @@ class FoodLibraryRepository @Inject constructor(
      */
     @Deprecated("server 统一管理后内置项编辑走 addCustom（server 会处理重名）")
     suspend fun overrideDefault(original: FoodItem, input: AddFoodInput): Boolean {
-        return addCustom(input) == AddResult.Success
+        return addCustom(input) is AddResult.Success
     }
 
     suspend fun deleteCustom(id: Long) {
@@ -208,7 +209,8 @@ class FoodLibraryRepository @Inject constructor(
         perServingCarb = perServingCarb,
         perServingWaterMl = perServingWaterMl,
         isDefault = false,
-        customId = id
+        customId = id,
+        serverId = null      // 本地 cache 没拿到 server id
     )
 
     private fun FoodDto.toFoodItem() = FoodItem(
@@ -222,7 +224,8 @@ class FoodLibraryRepository @Inject constructor(
         perServingCarb = carbG,
         perServingWaterMl = waterMl,
         isDefault = isDefault,
-        customId = id
+        customId = id,
+        serverId = id
     )
 
     private fun UpsertFoodReq.toLocalEntity() = FoodItemEntity(

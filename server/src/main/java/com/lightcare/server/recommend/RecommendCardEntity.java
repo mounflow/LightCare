@@ -48,6 +48,10 @@ public class RecommendCardEntity {
     @Column(length = 2048)
     private String candidatesJson;
 
+    /** PR-Recipe: meal 卡的关联 foodId（让客户端能跳详情看做法）。exercise 类为 null。 */
+    @Column(name = "food_id")
+    private Long foodId;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
     @Column(name = "acted_at")

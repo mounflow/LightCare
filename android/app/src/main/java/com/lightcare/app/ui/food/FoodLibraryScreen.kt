@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -70,6 +71,8 @@ import com.lightcare.app.ui.theme.categoryEmojiOf
 @Composable
 fun FoodLibraryScreen(
     onBack: () -> Unit,
+    /** PR-Recipe: 点击食物卡 → 跳详情页（看做法 / 编辑做法）。仅自定义 + server 同步的食物可跳（serverId != null）。 */
+    onOpenFood: (Long) -> Unit = {},
     vm: FoodLibraryViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -77,6 +80,15 @@ fun FoodLibraryScreen(
     var editing by remember { mutableStateOf<FoodItem?>(null) }
     var showClearConfirm by remember { mutableStateOf(false) }
     var builtinHint by remember { mutableStateOf<String?>(null) }
+
+    // PR-Recipe: 新建食物成功后，跳详情页让用户继续填做法。
+    androidx.compose.runtime.LaunchedEffect(state.lastCreatedFoodId) {
+        val id = state.lastCreatedFoodId
+        if (id != null) {
+            vm.consumeLastCreatedFoodId()
+            onOpenFood(id)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -98,7 +110,7 @@ fun FoodLibraryScreen(
                     if (state.customs.isNotEmpty()) {
                         Box(
                             modifier = Modifier
-                                .size(D.topBar - 16.dp)
+                                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                                 .clickable(onClick = { showClearConfirm = true }),
                             contentAlignment = Alignment.Center
                         ) {
@@ -137,6 +149,8 @@ fun FoodLibraryScreen(
             LCEmptyState(
                 emoji = "🔍",
                 message = "没找到「$q」，点底部 + 添加",
+                actionLabel = "添加食物",
+                onAction = { showAdd = true },
                 modifier = Modifier.weight(1f)
             )
         } else {
@@ -157,7 +171,11 @@ fun FoodLibraryScreen(
                             selected = item.customId in state.selectedCustomIds,
                             onClick = {
                                 if (state.selectionMode) vm.toggleSelect(item)
-                                else editing = item
+                                else {
+                                    // PR-Recipe: 优先跳详情页（看 / 编辑做法）；旧 "编辑" 行为合并到详情页里的编辑入口。
+                                    val sid = item.serverId
+                                    if (sid != null) onOpenFood(sid) else editing = item
+                                }
                             },
                             onLongClick = {
                                 if (!state.selectionMode) vm.enterSelection(item)
@@ -175,7 +193,11 @@ fun FoodLibraryScreen(
                             selected = item.customId in state.selectedCustomIds,
                             onClick = {
                                 if (state.selectionMode) vm.toggleSelect(item)
-                                else builtinHint = item.displayName
+                                else {
+                                    // 内置：跳详情页（看营养 + 看 / 写做法；编辑被 server 403 兜底）
+                                    val sid = item.serverId
+                                    if (sid != null) onOpenFood(sid) else builtinHint = item.displayName
+                                }
                             },
                             onLongClick = {
                                 if (!state.selectionMode) vm.enterSelection(item)
@@ -270,7 +292,7 @@ private fun SelectionToolbar(count: Int, onCancel: () -> Unit, onSelectAll: () -
     ) {
         Box(
             modifier = Modifier
-                .size(D.topBar - 16.dp)
+                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                 .clickable(onClick = onCancel),
             contentAlignment = Alignment.Center
         ) {
@@ -288,7 +310,7 @@ private fun SelectionToolbar(count: Int, onCancel: () -> Unit, onSelectAll: () -
         )
         Box(
             modifier = Modifier
-                .size(D.topBar - 16.dp)
+                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                 .clickable(onClick = onSelectAll),
             contentAlignment = Alignment.Center
         ) {
@@ -296,7 +318,7 @@ private fun SelectionToolbar(count: Int, onCancel: () -> Unit, onSelectAll: () -
         }
         Box(
             modifier = Modifier
-                .size(D.topBar - 16.dp)
+                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                 .background(if (count > 0) Error else Outline, CircleShape)
                 .clickable(enabled = count > 0, onClick = onDelete),
             contentAlignment = Alignment.Center
