@@ -27,7 +27,13 @@ data class HomeUiState(
     val slotContribs: List<MealSlotContribution> = emptyList(),
 
     // 推荐 Top 5（P44：基于余量缺口 + 食物库候选 + 优先级打分）
-    val recommendations: List<RecommendedFood> = emptyList()
+    val recommendations: List<RecommendedFood> = emptyList(),
+
+    /**
+     * profile 缺身高/体重 → 首页显示"📏 补全身体数据"banner，点跳我的身体数据。
+     * true = 还没填，false = 已填（kcalTarget 非 null）或 profile 为 null（无 profile 不显示）。
+     */
+    val needsPhysique: Boolean = false
 )
 
 /** 进度区视图模式 */
@@ -48,21 +54,26 @@ data class DayBar(
 
 data class NutrientRemnant(
     val name: String,
-    /** 该营养项的目标值（如蛋白 60） */
-    val target: Double,
+    /** 该营养项的目标值（如蛋白 60）。null = 用户还没填身体数据，UI 显示"—"。 */
+    val target: Double?,
     val unit: String,
     /** 已摄入总量（各餐次之和） */
     val totalConsumed: Double,
     /** 按餐次分段：每段 = 一顿在该营养项的占比（0..1，相对 target）+ 该段颜色/餐次 */
     val segments: List<NutrientSegment>
 ) {
-    /** 已消耗占比（0..100），封顶 100。 */
+    /** 已消耗占比（0..100），封顶 100。target 为 null 时返 0（不要伪造数字）。 */
     val consumedPct: Float
-        get() = if (target <= 0) 0f else (totalConsumed * 100.0 / target).toFloat().coerceIn(0f, 100f)
-    /** 显示文案：已摄入/目标（如「48 / 60」），达标显示「已达标 🎉」。 */
+        get() = if (target == null || target <= 0) 0f else (totalConsumed * 100.0 / target).toFloat().coerceIn(0f, 100f)
+    /**
+     * 显示文案：已摄入/目标（如「48 / 60」），达标显示「已达标 🎉」，target 为 null 显示「—」。
+     */
     val remain: String
-        get() = if (consumedPct >= 100f) "已达标 🎉"
-                else "${fmt(totalConsumed)} / ${fmt(target)}"
+        get() = when {
+            target == null -> "—"
+            consumedPct >= 100f -> "已达标 🎉"
+            else -> "${fmt(totalConsumed)} / ${fmt(target)}"
+        }
 }
 
 private fun fmt(v: Double): String =
@@ -122,5 +133,7 @@ data class RecommendedFood(
     /** 排序分（0..1，越高越靠前）。 */
     val score: Double,
     /** 推荐理由（"补蛋白 60g"、"补碳水 80g" 等简短文案）。 */
-    val reason: String
+    val reason: String,
+    /** PR-Recipe: 关联的 server foodId（点推荐卡跳详情页）。null = 不可点（exercise / 找不到对应 food）。 */
+    val serverId: Long? = null
 )

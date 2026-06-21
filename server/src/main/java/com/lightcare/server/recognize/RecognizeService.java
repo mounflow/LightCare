@@ -26,7 +26,7 @@ public class RecognizeService {
     private static final String M3_URL = "https://api.minimaxi.com/anthropic/v1/messages";
     private static final String M3_MODEL = "MiniMax-M3";
 
-    /** PR3: 加 water_ml（汤/粥/饮料估毫升，整型；食材本身含水也算）。 */
+    /** PR-Recipe: prompt 增 recipe 字段（识别时顺便输出做法，没把握就空）。 */
     private static final String PROMPT =
         "你是一个精确的食物营养分析助手。请仔细看图，识别图中所有食物，" +
         "并对每一项给出【基于图片可见部分的份量】的营养估算。\n" +
@@ -45,7 +45,14 @@ public class RecognizeService {
         "      \"sugar_g\": 数字,   // 糖分（保留 1 位小数，没有就给 0）\n" +
         "      \"sodium_mg\": 数字, // 钠毫克（整型）\n" +
         "      \"water_ml\": 数字,  // 本份含水量毫升（整型：汤/粥/饮料 自由水 + 食材本身含水；米饭 50ml, 蔬果按 80% 估, 干粮 20ml）\n" +
-        "      \"confidence\": 0-1之间的数字  // 你对识别的确信度\n" +
+        "      \"confidence\": 0-1之间的数字, // 你对识别的确信度\n" +
+        "      \"recipe\": { // 做法（可选；没把握就全部留空数组，client 会显示“无做法”）\n" +
+        "        \"cooking_minutes\": 数字,   // 烹饪时间（分钟，整型）\n" +
+        "        \"difficulty\": \"EASY|MEDIUM|HARD\",\n" +
+        "        \"ingredients\": [{\"name\": \"食材名\", \"amount\": \"用量（如 2 个 / 100g / 适量）\"}],\n" +
+        "        \"seasonings\":  [{\"name\": \"调料名\", \"amount\": \"用量（如 1 勺 / 5g / 少许）\"}],\n" +
+        "        \"steps\": [{\"order\": 1, \"text\": \"第 1 步说明\"}, {\"order\": 2, \"text\": \"第 2 步说明\"}]\n" +
+        "      }\n" +
         "    }\n" +
         "  ],\n" +
         "  \"total_kcal\": 数字\n" +
@@ -134,6 +141,8 @@ public class RecognizeService {
         }
         List<RecognizedItem> items = new ArrayList<>();
         for (JsonNode it : parsed.path("items")) {
+            // PR-Recipe: M3 顺便返回的 recipe（没填时给空，client 走"无做法"路径）
+            RecipeHint hint = parseRecipeHint(it.path("recipe"));
             items.add(new RecognizedItem(
                 it.path("name").asText(""),
                 it.path("category").asText("其他"),
@@ -146,10 +155,57 @@ public class RecognizeService {
                 round1(it.path("sugar_g").asDouble(0)),
                 it.path("sodium_mg").asInt(0),
                 it.path("water_ml").asInt(0),    // PR3: 加水字段
-                clamp01(it.path("confidence").asDouble(0.0))
+                clamp01(it.path("confidence").asDouble(0.0)),
+                hint
             ));
         }
         return items;
+    }
+
+    /**
+     * M3 输出的 recipe 提示（结构弱类型：M3 可能给不完整字段，client 拿到后存 DB）。
+     * 没填（hint 为 null）→ 当作"无做法"。isEmpty 留作 client 判断是否值得展示。
+     */
+    public record RecipeHint(
+        int cookingMinutes,
+        String difficulty,         // EASY | MEDIUM | HARD | null
+        List<Item> ingredients,     // 可能空
+        List<Item> seasonings,
+        List<Step> steps
+    ) {
+        public boolean isEmpty() {
+            return cookingMinutes <= 0
+                && (ingredients == null || ingredients.isEmpty())
+                && (seasonings  == null || seasonings.isEmpty())
+                && (steps       == null || steps.isEmpty());
+        }
+    }
+    public record Item(String name, String amount) {}
+    public record Step(int order, String text) {}
+
+    /** 把 M3 返回的 recipe 节点解析成 RecipeHint（不抛异常；解析失败 → null）。 */
+    private static RecipeHint parseRecipeHint(JsonNode r) {
+        if (r == null || r.isMissingNode() || r.isNull()) return null;
+        try {
+            int minutes = r.path("cooking_minutes").asInt(0);
+            String diff = r.path("difficulty").asText(null);
+            if (diff != null && diff.isBlank()) diff = null;
+            List<Item> ings = new ArrayList<>();
+            for (JsonNode n : r.path("ingredients")) {
+                ings.add(new Item(n.path("name").asText(""), n.path("amount").asText("")));
+            }
+            List<Item> seaso = new ArrayList<>();
+            for (JsonNode n : r.path("seasonings")) {
+                seaso.add(new Item(n.path("name").asText(""), n.path("amount").asText("")));
+            }
+            List<Step> steps = new ArrayList<>();
+            for (JsonNode n : r.path("steps")) {
+                steps.add(new Step(n.path("order").asInt(steps.size() + 1), n.path("text").asText("")));
+            }
+            return new RecipeHint(minutes, diff, ings, seaso, steps);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static double round1(double v) { return Math.round(v * 10.0) / 10.0; }
@@ -189,7 +245,7 @@ public class RecognizeService {
         return s == null || s.length() <= max ? s : s.substring(0, max) + "...";
     }
 
-    /** 精确宏量营养识别结果（PR3 加 waterMl）。 */
+    /** 精确宏量营养识别结果（PR3 加 waterMl；PR-Recipe 加 recipeHint）。 */
     public record RecognizedItem(
         String name,
         String category,
@@ -202,6 +258,7 @@ public class RecognizeService {
         double sugarG,
         int sodiumMg,
         int waterMl,        // PR3: 本份含水（毫升）
-        double confidence
+        double confidence,
+        RecipeHint recipeHint   // PR-Recipe: 做法提示（可能 null）
     ) {}
 }

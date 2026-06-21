@@ -1,6 +1,7 @@
 package com.lightcare.app.ui.home
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -43,7 +44,6 @@ import com.lightcare.app.ui.theme.D
 import com.lightcare.app.ui.theme.Error
 import com.lightcare.app.ui.theme.LCAppear
 import com.lightcare.app.ui.theme.LCCapsuleProgress
-import com.lightcare.app.ui.theme.LCConcentricRings
 import com.lightcare.app.ui.theme.LCEmojiBadge
 import com.lightcare.app.ui.theme.LCSegmentedCapsule
 import com.lightcare.app.ui.theme.Motion
@@ -53,7 +53,6 @@ import com.lightcare.app.ui.theme.NutrientWater
 import com.lightcare.app.ui.theme.Outline
 import com.lightcare.app.ui.theme.Primary
 import com.lightcare.app.ui.theme.PrimaryContainer
-import com.lightcare.app.ui.theme.RingSpec
 import com.lightcare.app.ui.theme.S
 import com.lightcare.app.ui.theme.SlotBreakfast
 import com.lightcare.app.ui.theme.categoryEmojiOf
@@ -70,7 +69,7 @@ import androidx.compose.animation.core.tween
  *
  * 视觉层次（自上而下）：
  *  1. 顶栏：品牌名 + 当前档案 chip
- *  2. Hero：3 环同心（蛋白 / 蔬果 / 水分） + 中央"今日进度 %"大数字
+ *  2. Hero：今日总进度大字 % + 3 营养素（蛋白 / 蔬果 / 水分）胶囊条
  *  3. 周/月切换 + 柱状图（达标 / 接近 / 超标 颜色编码）
  *  4. 今日余量：4 条胶囊，每条可点
  *  5. 推荐食物（Top 5）
@@ -81,6 +80,10 @@ import androidx.compose.animation.core.tween
 fun HomeScreen(
     refreshKey: Int = 0,
     onViewHistory: () -> Unit = {},
+    /** PR-Recipe: 点击推荐卡跳详情页（看 / 编辑做法）。 */
+    onOpenFood: (Long) -> Unit = {},
+    /** "📏 补全身体数据" banner 点击 → 跳我的身体数据（注册时未填身高/体重/年龄时显示）。 */
+    onOpenPhysique: () -> Unit = {},
     vm: HomeViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -95,6 +98,15 @@ fun HomeScreen(
     ) {
         // —— 1. 顶栏 ——
         item { HomeTopBar(state.currentProfileName) }
+
+        // —— 1.5 引导 banner：profile 没身高/体重 → 显示"补全身体数据"
+        if (state.needsPhysique) {
+            item {
+                Box(modifier = Modifier.padding(horizontal = S.screenH, vertical = S.sm)) {
+                    PhysiquePromptCard(onClick = onOpenPhysique)
+                }
+            }
+        }
 
         // —— 2. Hero：3 环同心 ——
         item {
@@ -120,7 +132,7 @@ fun HomeScreen(
                     .padding(horizontal = S.screenH)
                     .padding(top = S.xxl)
             ) {
-                RecommendationList(state.recommendations)
+                RecommendationList(state.recommendations, onOpenFood = onOpenFood)
             }
         }
 
@@ -171,96 +183,82 @@ private fun HomeTopBar(profileName: String) {
 }
 
 // ─────────────────────────────────────────────────
-// Hero：3 环同心（蛋白+蔬果+水分）+ 中央 %
+// Hero：今日总进度大字 + 3 营养素摘要（干掉 3 环同心）
 // ─────────────────────────────────────────────────
 @Composable
 private fun NutritionHeroCard(state: HomeUiState) {
-    // 3 环从外到内：蛋白 / 蔬果 / 水分
-    val rings = listOf(
-        RingSpec(NutrientProtein, proteinProgress(state), trackColor = NutrientProtein.copy(alpha = 0.15f)),
-        RingSpec(NutrientVeg, vegProgress(state), trackColor = NutrientVeg.copy(alpha = 0.15f)),
-        RingSpec(NutrientWater, waterProgress(state), trackColor = NutrientWater.copy(alpha = 0.15f))
+    val targetPct = overallProgress(state)
+    val animatedPct by animateIntAsState(
+        targetValue = targetPct,
+        animationSpec = tween(durationMillis = Motion.MEDIUM),
+        label = "homeOverallPct"
     )
-
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .ambientCard()
             .padding(S.xl),
-        contentAlignment = Alignment.Center
+        verticalArrangement = Arrangement.spacedBy(S.lg)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // 3 环 + 中央数据
-            Box(
-                modifier = Modifier.size(220.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                LCConcentricRings(
-                    rings = rings,
-                    size = 220.dp,
-                    ringGap = 12.dp,
-                    strokeWidth = 14.dp
-                )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        greeting(state),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Outline
-                    )
-                    Spacer(Modifier.height(S.xxs))
-                    Text(
-                        "${overallProgress(state)}%",
-                        style = MaterialTheme.typography.displayMedium,
-                        color = Primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        "今日完成",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Outline
-                    )
-                }
-            }
-            Spacer(Modifier.height(S.lg))
-            // 3 环图例（小色点 + 标签 + 数值）
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(S.md),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                RingLegend(NutrientProtein, "蛋白", state.remnants.getOrNull(0))
-                RingLegend(NutrientVeg, "蔬果", state.remnants.getOrNull(2))
-                RingLegend(NutrientWater, "水分", state.remnants.getOrNull(3))
-            }
+        // 大字"今日完成 %" + 问候
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                greeting(state),
+                style = MaterialTheme.typography.labelMedium,
+                color = Outline
+            )
+            Spacer(Modifier.height(S.xxs))
+            Text(
+                "$animatedPct%",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontFeatureSettings = "tnum"
+                ),
+                color = Primary,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "今日完成",
+                style = MaterialTheme.typography.labelSmall,
+                color = Outline
+            )
         }
+        // 3 营养素摘要（取代原 3 环图例）
+        NutrientSummaryRow(NutrientProtein, "蛋白", state.remnants.getOrNull(0))
+        NutrientSummaryRow(NutrientVeg,     "蔬果", state.remnants.getOrNull(2))
+        NutrientSummaryRow(NutrientWater,   "水分", state.remnants.getOrNull(3))
     }
 }
 
 @Composable
-private fun RingLegend(color: Color, label: String, remnant: NutrientRemnant?) {
+private fun NutrientSummaryRow(color: Color, label: String, remnant: NutrientRemnant?) {
     val pct = remnant?.consumedPct?.toInt() ?: 0
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(S.md)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.width(72.dp)) {
             Box(modifier = Modifier.size(8.dp).background(color, CircleShape))
             Spacer(Modifier.width(S.xxs))
             Text(label, style = MaterialTheme.typography.labelSmall, color = Outline)
         }
-        Spacer(Modifier.height(S.xxs))
+        LCCapsuleProgress(
+            progress = pct / 100f,
+            fillColor = color,
+            trackColor = color.copy(alpha = 0.15f),
+            modifier = Modifier.weight(1f)
+        )
         Text(
             "${pct}%",
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.labelMedium,
             color = Primary,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.width(44.dp),
+            textAlign = androidx.compose.ui.text.style.TextAlign.End
         )
     }
 }
 
-private fun proteinProgress(s: HomeUiState): Float =
-    s.remnants.getOrNull(0)?.consumedPct?.div(100f) ?: 0f
-private fun vegProgress(s: HomeUiState): Float =
-    // PRD 没列"蔬果"为余量项，从碳水近似（碳水反映主食/蔬果累计）
-    s.remnants.getOrNull(2)?.consumedPct?.div(100f) ?: 0f
-private fun waterProgress(s: HomeUiState): Float =
-    s.remnants.getOrNull(3)?.consumedPct?.div(100f) ?: 0f
 private fun overallProgress(s: HomeUiState): Int {
     val prots = listOfNotNull(
         s.remnants.getOrNull(0)?.consumedPct,
@@ -436,7 +434,7 @@ private fun RemnantsCard(
             .padding(S.xl),
         verticalArrangement = Arrangement.spacedBy(S.lg)
     ) {
-        com.lightcare.app.ui.theme.LCCardLabel("今日余量", emoji = "✨")
+        com.lightcare.app.ui.theme.LCCardLabel("今日余量")
         remnants.forEach { r ->
             RemnantRow(r) { seg -> selectedSlot = seg.slot }
         }
@@ -558,7 +556,7 @@ private fun fmtG(v: Double): String = if (v >= 100) "${v.toInt()}" else "${"%.1f
 // 推荐食物
 // ─────────────────────────────────────────────────
 @Composable
-private fun RecommendationList(recommendations: List<RecommendedFood>) {
+private fun RecommendationList(recommendations: List<RecommendedFood>, onOpenFood: (Long) -> Unit = {}) {
     Column(verticalArrangement = Arrangement.spacedBy(S.md)) {
         Column {
             Text(
@@ -593,18 +591,20 @@ private fun RecommendationList(recommendations: List<RecommendedFood>) {
                 }
             }
         } else {
-            recommendations.forEach { RecommendationItemCard(it) }
+            recommendations.forEach { RecommendationItemCard(it, onOpenFood) }
         }
     }
 }
 
 @Composable
-private fun RecommendationItemCard(food: RecommendedFood) {
+private fun RecommendationItemCard(food: RecommendedFood, onOpenFood: (Long) -> Unit = {}) {
+    // PR-Recipe: 有 serverId 才让点跳详情，否则只是展示卡（exercise / 找不到对应 food）。
+    val sid = food.serverId
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .ambientCard()
-            .clickable { /* TODO: 一键记录 */ }
+            .then(if (sid != null) Modifier.clickable { onOpenFood(sid) } else Modifier)
             .padding(horizontal = S.lg, vertical = S.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(S.lg)
@@ -636,5 +636,44 @@ private fun RecommendationItemCard(food: RecommendedFood) {
             )
             Text("kcal", style = MaterialTheme.typography.labelSmall, color = Outline)
         }
+    }
+}
+
+// ─────────────────────────────────────────────────
+// "📏 补全身体数据" 引导 banner
+// 仅在 profile.calorieTargetKcal == null（用户还没填身高/体重）时显示。
+// 点击 → onOpenPhysique() 跳"我的身体数据"页。
+// ─────────────────────────────────────────────────
+@Composable
+private fun PhysiquePromptCard(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(PrimaryContainer, RoundedCornerShape(D.radiusMd))
+            .clickable(onClick = onClick)
+            .padding(horizontal = S.md, vertical = S.sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(S.sm)
+    ) {
+        Text("📏", style = MaterialTheme.typography.titleMedium)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "补全身体数据",
+                style = MaterialTheme.typography.labelLarge,
+                color = Primary,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "填了身高体重，目标才准",
+                style = MaterialTheme.typography.bodySmall,
+                color = Outline
+            )
+        }
+        Text(
+            "去填 ›",
+            style = MaterialTheme.typography.labelMedium,
+            color = Primary,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }

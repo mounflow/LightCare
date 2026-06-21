@@ -37,6 +37,7 @@ import com.lightcare.app.data.api.HighlightDto
 import com.lightcare.app.data.api.NutritionDto
 import com.lightcare.app.data.api.WeeklyReportDto
 import com.lightcare.app.ui.theme.D
+import com.lightcare.app.ui.theme.LCCapsuleProgress
 import com.lightcare.app.ui.theme.LCEmptyState
 import com.lightcare.app.ui.theme.LCLoading
 import com.lightcare.app.ui.theme.LCStatCell
@@ -144,7 +145,12 @@ fun InsightScreen(
                     }
                 }
             }
-            else -> LCEmptyState(emoji = "📋", message = "暂无周报数据")
+            else -> LCEmptyState(
+                emoji = "📋",
+                message = "暂无周报数据",
+                actionLabel = "刷新",
+                onAction = { vm.load() }
+            )
         }
     }
 }
@@ -193,23 +199,23 @@ private fun NutritionRing(n: NutritionDto) {
             .padding(S.xl),
         verticalArrangement = Arrangement.spacedBy(S.md)
     ) {
-        com.lightcare.app.ui.theme.LCCardLabel("本周达标率", emoji = "🎯")
-        // 2×2 进度条卡片网格（替代原圆环，更清爽、信息密度高）
+        com.lightcare.app.ui.theme.LCCardLabel("本周达标率")
+        // 2×2 进度条卡片网格（颜色编码即识别，不需要 emoji）
         Row(horizontalArrangement = Arrangement.spacedBy(S.md)) {
-            ProgressStat("🔥", "能量", n.kcalPct, NutrientKcal, Modifier.weight(1f))
-            ProgressStat("💪", "蛋白", n.proteinPct, NutrientProtein, Modifier.weight(1f))
+            ProgressStat("能量", n.kcalPct, NutrientKcal, Modifier.weight(1f))
+            ProgressStat("蛋白", n.proteinPct, NutrientProtein, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(S.md)) {
-            ProgressStat("🥦", "蔬果", n.vegPct, NutrientVeg, Modifier.weight(1f))
-            ProgressStat("💧", "水分", n.waterPct, NutrientWater, Modifier.weight(1f))
+            ProgressStat("蔬果", n.vegPct, NutrientVeg, Modifier.weight(1f))
+            ProgressStat("水分", n.waterPct, NutrientWater, Modifier.weight(1f))
         }
     }
 }
 
-/** 达标率卡片：emoji+标签 + 大百分比 + 横向进度条（进度条用该营养项的专属色）。 */
+/** 达标率卡片：标签 + 大百分比 + 横向进度条（进度条用该营养项的专属色）。 */
 @Composable
 private fun ProgressStat(
-    emoji: String, label: String, pct: Int,
+    label: String, pct: Int,
     color: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier
 ) {
     val safe = pct.coerceIn(0, 100)
@@ -219,27 +225,19 @@ private fun ProgressStat(
             .padding(S.md)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(emoji, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.width(S.xs))
             Text(label, style = MaterialTheme.typography.labelMedium, color = Outline)
             Spacer(Modifier.weight(1f))
             Text("${safe}%", style = MaterialTheme.typography.titleLarge,
                 color = Primary, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(S.sm))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(50))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth((safe / 100f))
-                    .background(color, RoundedCornerShape(50))
-            )
-        }
+        LCCapsuleProgress(
+            progress = safe / 100f,
+            fillColor = color,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            height = 8.dp,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

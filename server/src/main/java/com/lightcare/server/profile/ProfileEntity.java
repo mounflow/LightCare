@@ -11,6 +11,11 @@ import java.time.LocalDate;
 /**
  * 家庭档案。一个用户可以拥有 0..4 份档案（PRD §1.3 决策）。
  * 代填关系：profile.managedByUserId 非空时，表示该档案由该用户代填。
+ *
+ * target 字段（蛋白/蔬果/饮水/步数/卡路里）语义：
+ *   - 注册时**不写**（让用户去"我的身体数据"页填身高体重后才算）
+ *   - 蔬果保留非空 + 默认 5（这是饮食建议常量，与个人参数无关）
+ *   - 其它 4 个 nullable；前端 null 显示"—" + 引导补全
  */
 @Entity
 @Table(
@@ -78,20 +83,26 @@ public class ProfileEntity {
         ActivityLevel(double f) { this.factor = f; }
     }
 
-    /** 默认按年龄段三档，P1.4 决策 */
-    @Column(name = "protein_target_g", nullable = false)
-    private int proteinTargetG = 60;
+    /** 营养目标值：可空。null = 用户还没填身高体重/年龄，前端显示"—" + 引导补全。 */
+    @Column(name = "protein_target_g")
+    private Integer proteinTargetG;
+
+    /** 蔬果建议份数：固定推荐，与个人参数无关。 */
     @Column(name = "veg_target_servings", nullable = false)
     private int vegTargetServings = 5;
-    @Column(name = "water_target_ml", nullable = false)
-    private int waterTargetMl = 1700;
-    @Column(name = "step_target", nullable = false)
-    private int stepTarget = 8000;
-    @Column(name = "calorie_target_kcal", nullable = false)
-    private int calorieTargetKcal = 2000;
+
+    @Column(name = "water_target_ml")
+    private Integer waterTargetMl;
+
+    @Column(name = "step_target")
+    private Integer stepTarget;
+
+    @Column(name = "calorie_target_kcal")
+    private Integer calorieTargetKcal;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 

@@ -24,8 +24,8 @@ public class ProfileController {
         String displayName, String avatarUrl, String relation,
         LocalDate birthDate, String gender,
         Integer heightCm, Double weightKg, String activityLevel,
-        int proteinTargetG, int vegTargetServings,
-        int waterTargetMl, int stepTarget, int calorieTargetKcal
+        Integer proteinTargetG, int vegTargetServings,
+        Integer waterTargetMl, Integer stepTarget, Integer calorieTargetKcal
     ) {}
 
     public record CreateProfileReq(
@@ -79,7 +79,7 @@ public class ProfileController {
         p.setHeightCm(req.heightCm());
         p.setWeightKg(req.weightKg());
         p.setActivityLevel(parseActivity(req.activityLevel()));
-        applyPhysiqueBasedTargets(p);
+        ProfileTargetCalculator.apply(p);
         profileRepo.save(p);
         return ApiResponse.ok(toDto(p));
     }
@@ -108,7 +108,7 @@ public class ProfileController {
         p.setHeightCm(req.heightCm());
         p.setWeightKg(req.weightKg());
         p.setActivityLevel(parseActivity(req.activityLevel()));
-        applyPhysiqueBasedTargets(p);
+        ProfileTargetCalculator.apply(p);
         profileRepo.save(p);
 
         return ApiResponse.ok(new BootstrapRes(u.getId(), toDto(p)));
@@ -126,7 +126,7 @@ public class ProfileController {
         if (req.heightCm() != null) p.setHeightCm(req.heightCm());
         if (req.weightKg() != null) p.setWeightKg(req.weightKg());
         if (req.activityLevel() != null) p.setActivityLevel(parseActivity(req.activityLevel()));
-        applyPhysiqueBasedTargets(p);   // 用最新 physique 重算所有目标值
+        ProfileTargetCalculator.apply(p);   // 用最新 physique 重算所有目标值
         profileRepo.save(p);
         return ApiResponse.ok(toDto(p));
     }
@@ -167,61 +167,7 @@ public class ProfileController {
         catch (Exception e) { return ProfileEntity.ActivityLevel.LIGHT; }
     }
 
-    /** PRD §1.4 + 方案 3：Mifflin-St Jeor 公式算 BMR，×活动系数得 TDEE，再分配目标值。
-     *  - 身高/体重任一缺失 → 退化为 PRD §1.4 三档默认
-     *  - 性别未填 (U) → 按体重 60kg 兜底
-     *  - 蛋白 1.6 g/kg；水 35 ml/kg；蔬果按年龄段；步数按活动量
-     *  - 热量不直接采 TDEE，减脂缺口 10%，保 1500 大卡下限（防推荐极低） */
-    private void applyPhysiqueBasedTargets(ProfileEntity p) {
-        Integer h = p.getHeightCm();
-        Double w = p.getWeightKg();
-        if (h == null || w == null || h <= 0 || w <= 0) { fallbackAgeDefaults(p); return; }
-
-        int age = (p.getBirthDate() != null)
-            ? LocalDate.now().getYear() - p.getBirthDate().getYear()
-            : 30;   // 兜底
-        age = Math.max(age, 5);
-
-        double bmr;
-        String g = p.getGender() == null ? "U" : p.getGender().toUpperCase();
-        switch (g) {
-            case "M" -> bmr = 10 * w + 6.25 * h - 5 * age + 5;
-            case "F" -> bmr = 10 * w + 6.25 * h - 5 * age - 161;
-            default  -> bmr = 10 * w + 6.25 * h - 5 * age - 78;   // U 兜底取平均
-        }
-
-        double tdee = bmr * p.getActivityLevel().factor;
-        int targetKcal = (int) Math.max(1500, tdee * 0.90);   // 10% 减脂缺口
-        int proteinG  = (int) Math.round(w * 1.6);
-        int waterMl   = (int) Math.round(w * 35);
-        int steps     = switch (p.getActivityLevel()) {
-            case SEDENTARY -> 6000;
-            case LIGHT      -> 8000;
-            case MODERATE   -> 10000;
-            case ACTIVE     -> 12000;
-            case VERY_ACTIVE -> 14000;
-        };
-        int vegServings = (age <= 18) ? 5 : (age <= 50 ? 5 : 4);
-
-        p.setCalorieTargetKcal(targetKcal);
-        p.setProteinTargetG(proteinG);
-        p.setWaterTargetMl(waterMl);
-        p.setStepTarget(steps);
-        p.setVegTargetServings(vegServings);
-    }
-
-    /** PRD §1.4 退化版：身高/体重未知时的年龄段默认 */
-    private void fallbackAgeDefaults(ProfileEntity p) {
-        if (p.getBirthDate() == null) return;
-        int age = LocalDate.now().getYear() - p.getBirthDate().getYear();
-        if (age <= 18) {
-            p.setProteinTargetG(60); p.setWaterTargetMl(1500); p.setStepTarget(8000); p.setCalorieTargetKcal(2000);
-        } else if (age <= 50) {
-            p.setProteinTargetG(60); p.setWaterTargetMl(1700); p.setStepTarget(8000); p.setCalorieTargetKcal(2000);
-        } else {
-            p.setProteinTargetG(55); p.setWaterTargetMl(1500); p.setStepTarget(6000); p.setCalorieTargetKcal(1800);
-        }
-    }
+    /** PRD §1.4 + 方案 3 计算已抽到 [ProfileTargetCalculator.apply]。 */
 
     private ProfileDto toDto(ProfileEntity p) {
         return new ProfileDto(

@@ -89,3 +89,6 @@ val SlotSnack = Color(0xFFFFAB91)          // 蜜橘
 /** 成功 / 状态色（柔）。 */
 val Success = Color(0xFF66BB6A)
 val SuccessContainer = Color(0xFFC8E6C9)
+
+/** 放大图遮罩（半透明黑）。 */
+val ZoomScrim = Color(0xCC000000)

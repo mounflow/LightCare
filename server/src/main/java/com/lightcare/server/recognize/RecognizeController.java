@@ -28,7 +28,17 @@ public class RecognizeController {
             List<RecognizeService.RecognizedItem> src = service.recognizeBytes(bytes, image.getContentType());
             List<RecognizedItem> dst = src.stream().map(s -> new RecognizedItem(
                 s.name(), s.category(), s.weightG(), s.kcal(),
-                s.proteinG(), s.fatG(), s.carbG(), s.fiberG(), s.sugarG(), s.sodiumMg(), s.confidence()
+                s.proteinG(), s.fatG(), s.carbG(), s.fiberG(), s.sugarG(), s.sodiumMg(), s.confidence(),
+                s.recipeHint() == null ? null : new RecipeHintDto(
+                    s.recipeHint().cookingMinutes(),
+                    s.recipeHint().difficulty(),
+                    s.recipeHint().ingredients() == null ? null : s.recipeHint().ingredients().stream()
+                        .map(i -> new ItemDto(i.name(), i.amount())).toList(),
+                    s.recipeHint().seasonings() == null ? null : s.recipeHint().seasonings().stream()
+                        .map(i -> new ItemDto(i.name(), i.amount())).toList(),
+                    s.recipeHint().steps() == null ? null : s.recipeHint().steps().stream()
+                        .map(st -> new StepDto(st.order(), st.text())).toList()
+                )
             )).toList();
             return ApiResponse.ok(dst);
         } catch (com.lightcare.server.common.ApiException e) {
@@ -39,10 +49,18 @@ public class RecognizeController {
         }
     }
 
-    /** 兼容旧 DTO（不包含 waterMl，老客户端无感）。 */
+    /** 兼容旧 DTO（不包含 waterMl / recipe，老客户端无感）。 */
     public record RecognizedItem(
         String name, String category, int weightG, int kcal,
         double proteinG, double fatG, double carbG, double fiberG, double sugarG,
-        int sodiumMg, double confidence
+        int sodiumMg, double confidence,
+        RecipeHintDto recipe
     ) {}
+
+    public record RecipeHintDto(
+        int cookingMinutes, String difficulty,
+        List<ItemDto> ingredients, List<ItemDto> seasonings, List<StepDto> steps
+    ) {}
+    public record ItemDto(String name, String amount) {}
+    public record StepDto(int order, String text) {}
 }

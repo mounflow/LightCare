@@ -85,23 +85,29 @@ class HomeViewModel @Inject constructor(
                 ProgressView.WEEK -> buildWeekBars(byDate, profile, today)
                 ProgressView.MONTH -> buildMonthBars(byDate, profile, today)
             }
+            // 用户没填身高/体重 → 提示去"我的身体数据"补全（首页才会显示假数字 = 0 / —）。
+            val needsPhysique = profile?.calorieTargetKcal == null
             _state.update {
                 it.copy(
                     bars = bars,
                     rangeText = rangeText,
                     activeBarIndex = activeIdx,
                     weekNumber = weekNo,
-                    currentProfileName = profile?.displayName ?: ""
+                    currentProfileName = profile?.displayName ?: "",
+                    needsPhysique = needsPhysique
                 )
             }
         }
     }
 
     private suspend fun updateRemnants(profile: ProfileDto?, meals: List<MealCacheEntity>) {
-        val proteinTarget = (profile?.proteinTargetG ?: 60).toDouble()
-        val fatTarget = (proteinTarget * 0.7).coerceAtLeast(20.0)
-        val carbTarget = (profile?.calorieTargetKcal?.let { it / 8 } ?: 200).toDouble()
-        val waterTarget = (profile?.waterTargetMl ?: 1700).toDouble()
+        // 不写假数据 —— profile 没返回 target（用户还没填身高体重）就让 UI 显示"—"。
+        val proteinTarget = profile?.proteinTargetG?.toDouble()
+        val waterTarget = profile?.waterTargetMl?.toDouble()
+        val kcalTarget = profile?.calorieTargetKcal
+        // 脂肪/碳水目标从 kcal 推算（kcal 缺失时同样 null）
+        val fatTarget: Double? = proteinTarget?.let { (it * 0.7).coerceAtLeast(20.0) }
+        val carbTarget: Double? = kcalTarget?.let { (it / 8).toDouble() }
 
         // 按餐次分组（同 slot 的多顿合并，如两次加餐算一起）。按时序排：早<午<晚<加餐。
         val slotOrder = listOf("BREAKFAST", "LUNCH", "DINNER", "SNACK")
@@ -155,7 +161,7 @@ class HomeViewModel @Inject constructor(
     /** 一个营养项 → 按 slotOrder 顺序的 segment 列表。selector 从 SlotNutrition 取该营养项值。 */
     private fun buildRemnant(
         slotAgg: Map<String, SlotNutrition>, slotOrder: List<String>,
-        name: String, target: Double, unit: String,
+        name: String, target: Double?, unit: String,
         selector: (SlotNutrition) -> Double
     ): NutrientRemnant {
         val total = slotAgg.values.sumOf(selector)
@@ -163,7 +169,8 @@ class HomeViewModel @Inject constructor(
             val sn = slotAgg[slot] ?: return@mapNotNull null
             val v = selector(sn)
             if (v <= 0) return@mapNotNull null   // 该顿在这个营养项为 0 不显示段
-            val fraction = if (target <= 0) 0f else (v / target).toFloat()
+            // target 为 null 时按"已摄入即占比 1"展示（用户能看到吃了多少，但不算 pct 不显示 X/Y）
+            val fraction = if (target == null || target <= 0) 1f else (v / target).toFloat()
             NutrientSegment(sn.slot, sn.slotDisplay, sn.color, fraction, v, unit)
         }
         return NutrientRemnant(name, target, unit, total, segments)
@@ -273,13 +280,14 @@ class HomeViewModel @Inject constructor(
         val fatConsumed = meals.sumOf { it.fatG }
         val carbConsumed = meals.sumOf { it.carbG }
 
-        val proteinTarget = profile?.proteinTargetG ?: 60
-        val fatTarget = (proteinTarget * 0.7).toInt().coerceAtLeast(20)
-        val carbTarget = profile?.calorieTargetKcal?.let { it / 8 } ?: 200
+        // 没填身体数据时：缺口视为 0（推荐不出"补什么"，因为没有目标可言）。
+        val proteinTarget = profile?.proteinTargetG?.toDouble()
+        val fatTarget = proteinTarget?.let { (it * 0.7).coerceAtLeast(20.0) }
+        val carbTarget = profile?.calorieTargetKcal?.toDouble()?.let { it / 8 }
 
-        val gapProtein = (proteinTarget - proteinConsumed).coerceAtLeast(0.0)
-        val gapFat = (fatTarget - fatConsumed).coerceAtLeast(0.0)
-        val gapCarb = (carbTarget - carbConsumed).coerceAtLeast(0.0)
+        val gapProtein = (proteinTarget?.minus(proteinConsumed) ?: 0.0).coerceAtLeast(0.0)
+        val gapFat = (fatTarget?.minus(fatConsumed) ?: 0.0).coerceAtLeast(0.0)
+        val gapCarb = (carbTarget?.minus(carbConsumed) ?: 0.0).coerceAtLeast(0.0)
 
         val allOnTarget = gapProtein <= 0.0 && gapFat <= 0.0 && gapCarb <= 0.0
 
@@ -318,7 +326,8 @@ class HomeViewModel @Inject constructor(
                 perServingFat = item.perServingFat,
                 perServingCarb = item.perServingCarb,
                 score = total,
-                reason = reason
+                reason = reason,
+                serverId = item.serverId
             )
         }.sortedByDescending { it.first }
             .take(5)
@@ -343,22 +352,23 @@ class HomeViewModel @Inject constructor(
     ): Quad<List<DayBar>, String, Int, Int> {
         val monday = today.with(DayOfWeek.MONDAY)
         val sunday = monday.plusDays(6)
-        val targetKcal = profile?.calorieTargetKcal ?: 2000
+        // target 为 null：本周不画"达标线"，仅按"哪天吃最多"归一化。
+        val targetKcal = profile?.calorieTargetKcal
         // PR-B: 柱高按当日 kcal（不再用餐次数）；颜色编码/超标由 DayBar.kcal + isOverTarget 承载。
         val raw = (0..6).map { i ->
             val date = monday.plusDays(i.toLong())
             val kcal = byDate[date.toString()]?.sumOf { it.kcal } ?: 0
             Triple(date, kcal, dayLabel(date.dayOfWeek))
         }
-        // 归一化分母 = max(本周最大 kcal, targetKcal)：既保留"哪天吃最多"对比，又让 target 占稳定比例。
-        val maxKcal = maxOf(raw.maxOf { it.second }, targetKcal, 1)
+        // 归一化分母 = max(本周最大 kcal, targetKcal ?: 0)：target 缺失时只按已吃归一化（无目标线）。
+        val maxKcal = maxOf(raw.maxOf { it.second }, targetKcal ?: 0, 1)
         val days = raw.map { (_, kcal, label) ->
             DayBar(
                 label = label,
                 height = (kcal.toFloat() / maxKcal).coerceIn(0f, 1f),
                 kcal = kcal,
-                targetKcal = targetKcal,
-                isOverTarget = kcal > targetKcal
+                targetKcal = targetKcal ?: 0,
+                isOverTarget = targetKcal != null && kcal > targetKcal
             )
         }
         val activeIdx = (today.dayOfWeek.value - 1)  // MONDAY=1 → 0
@@ -380,8 +390,8 @@ class HomeViewModel @Inject constructor(
         val lastOfMonth = today.withDayOfMonth(today.lengthOfMonth())
         val firstMonday = firstOfMonth.with(DayOfWeek.MONDAY)
         val lastMondayOfMonth = lastOfMonth.with(DayOfWeek.MONDAY)
-        // P1-12: 月视图目标用「日目标 × 7」（每周柱按周累计 kcal 比对）
-        val targetKcal = (profile?.calorieTargetKcal ?: 2000) * 7
+        // P1-12: 月视图目标用「日目标 × 7」（每周柱按周累计 kcal 比对）。target null → 不画达标线。
+        val targetKcalWeekly: Int? = profile?.calorieTargetKcal?.let { it * 7 }
         val weeks = ((lastMondayOfMonth.toEpochDay() - firstMonday.toEpochDay()) / 7 + 1).toInt()
         val weeksInMonth = generateSequence(firstMonday) { it.plusDays(7) }.take(weeks).toList()
         var activeIdx = -1
@@ -393,14 +403,14 @@ class HomeViewModel @Inject constructor(
             if (weekStart <= today && today < weekStart.plusDays(7)) activeIdx = idx
             Triple(weekStart, kcal, "${weekStart.dayOfMonth}-${weekStart.plusDays(6).dayOfMonth}")
         }
-        val maxKcal = maxOf(rawKcal.maxOf { it.second }, targetKcal, 1)
+        val maxKcal = maxOf(rawKcal.maxOf { it.second }, targetKcalWeekly ?: 0, 1)
         val bars = rawKcal.map { (_, kcal, label) ->
             DayBar(
                 label = label,
                 height = (kcal.toFloat() / maxKcal).coerceIn(0f, 1f),
                 kcal = kcal,
-                targetKcal = targetKcal,
-                isOverTarget = kcal > targetKcal
+                targetKcal = targetKcalWeekly ?: 0,
+                isOverTarget = targetKcalWeekly != null && kcal > targetKcalWeekly
             )
         }
         val monthText = "${today.monthValue} 月"

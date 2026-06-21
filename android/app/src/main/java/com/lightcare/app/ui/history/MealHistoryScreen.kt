@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,6 +47,7 @@ import com.lightcare.app.ui.theme.PrimaryContainer
 import com.lightcare.app.ui.theme.OnPrimary
 import com.lightcare.app.ui.theme.S
 import com.lightcare.app.ui.theme.Surface
+import com.lightcare.app.ui.theme.ZoomScrim
 import com.lightcare.app.ui.theme.ambientCard
 
 /**
@@ -72,7 +74,7 @@ fun MealHistoryScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(D.topBar - 16.dp)
+                            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                             .clickable { vm.prevWeek() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -80,7 +82,7 @@ fun MealHistoryScreen(
                     }
                     Box(
                         modifier = Modifier
-                            .size(D.topBar - 16.dp)
+                            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                             .clickable(enabled = state.canGoNext) { vm.nextWeek() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -96,10 +98,17 @@ fun MealHistoryScreen(
 
         when {
             state.loading -> LCLoading()
-            state.error != null -> LCEmptyState(emoji = "😅", message = state.error!!)
+            state.error != null -> LCEmptyState(
+                emoji = "😅",
+                message = state.error!!,
+                actionLabel = "重试",
+                onAction = { vm.load() }
+            )
             state.sections.isEmpty() -> LCEmptyState(
                 emoji = "🍽️",
-                message = "本周还没有记录，去记一餐吧"
+                message = "本周还没有记录，去记一餐吧",
+                actionLabel = "刷新看看",
+                onAction = { vm.load() }
             )
             else -> {
                 LazyColumn(
@@ -142,7 +151,7 @@ fun MealHistoryScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(androidx.compose.ui.graphics.Color(0xCC000000))
+                .background(ZoomScrim)
                 .clickable { zoomBitmap = null },
             contentAlignment = Alignment.Center
         ) {
